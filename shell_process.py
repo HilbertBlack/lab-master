@@ -46,7 +46,3 @@ def run_cmd(cmd, cmd_input=""):
     # print(line, end="")
 
     process.wait()
-
-
-
-run_cmd()

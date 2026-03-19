@@ -55,7 +55,9 @@ scan.fast_scan_btn.config(command=switch_to_fastscan_page)
 
 # intialily setting the page to be at teh start page
 start.screen.tkraise()
-password =  password_window.get_password(main_frame)
+_password =  password_window.get_password(main_frame)
 
+
+print("l" , _password, "o", password)
 # start the listening of the events and view of screen
 main_frame.mainloop()

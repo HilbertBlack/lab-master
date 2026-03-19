@@ -4,10 +4,13 @@ import paramiko as paramiko
 import remote_connection as remote_connection
 import json_reader as json_reader
 import find_user as find_user
-
+import window_functions as window_functions
+import get_password 
 
 common_user = "machine"
 common_pass = "machine@123"
+
+isSUDO = None
 
 missing_ips_list = set()
 connected_ips_list = set()
@@ -27,6 +30,8 @@ isSUDO_check_box=None
 connect_btn = None
 cmd_btn     = None
 copy_btn    = None
+msg_btn     = None
+lock_btn    = None
 
 username_entry =None
 password_entry =None
@@ -123,9 +128,13 @@ def change_term_btn_icon(ip_address, icon_status):
             
             t_btn.term_btn.image = icon_status
 
-            t_btn.conn_status = "alive"
-
-        
+            if(icon_status == GREEN_ICON):
+                t_btn.conn_status = "alive"
+            elif (icon_status == GREY_ICON):
+                t_btn.conn_status = "not_conn"
+            else:
+                t_btn.conn_status = "alive"
+            
             break
 
     main_frame.update()
@@ -324,6 +333,8 @@ def run_cmd_all(list_of_clients, cmd, username, password, isSUDO):
         else:
             print("{ FAILED }")
             change_term_btn_icon(ip_address, RED_ICON)
+
+            print(stdout)
             continue
             
         print("client:", client.get_transport().getpeername()[0])
@@ -336,20 +347,61 @@ def run_cmd_all(list_of_clients, cmd, username, password, isSUDO):
     return list_of_lists
 
 
-def connect_default():
+def connect_default(cmd):
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    client.connect(hostname = "192.168.137.25", username = "gokul", password = "Gokul@333", port = 22)
+    client.connect(hostname = "10.198.122.106", username = "machine", password = "machine@123", port = 22)
 
     print("client connected")
 
-    stdin, stdout, stderr, exit_code = remote_connection.run_cmd(client, "ls")
+    stdin, stdout, stderr, exit_code = remote_connection.run_sudo_cmd(client, cmd, "machine", "machine@123")
 
     print("output: ", stdout.read().decode())
     print("Exit code: ", stdout.channel.recv_exit_status())
     client.close()
 
 
+def send_msg_all():
+
+    global list_of_clients
+
+#     str_msg_cmd = window_functions.pop_up_question_for_send_msg(main_frame)
+#     
+#     print("Sending messages with command ->", window_functions._str_msg_cmd)
+# 
+#     run_cmd_all(list_of_clients, window_functions._str_msg_cmd, common_user, common_pass, isSUDO = False)
+
+    str_msg_cmd = get_password.get_msg_details(main_frame)
+
+    print("P ",str_msg_cmd," P")
+
+    
+    # final_msg = f'''GUI_USER=$(loginctl list-sessions --no-legend | awk '$4=="seat0" {{print $3; exit}}'); \
+    # [ -n "$GUI_USER" ] && sudo -u "$GUI_USER" DISPLAY=:0 XAUTHORITY=/home/$GUI_USER/.Xauthority zenity --info --text="{str_msg_cmd} & disown" || echo "No active GUI session"'''
+
+
+    final_msg = f'''GUI_USER=$(loginctl list-sessions --no-legend | awk '$4=="seat0" {{print $3; exit}}');
+    GUI_UID=$(id -u "$GUI_USER");
+    [ -n "$GUI_USER" ] && sudo -u "$GUI_USER" DISPLAY=:0 XDG_RUNTIME_DIR=/run/user/$GUI_UID notify-send "{str_msg_cmd}"
+    '''
+    
+
+    print("final : ", final_msg)
+
+   # connect_default(final_msg)
+    
+    run_cmd_all(list_of_clients, final_msg, username_entry.get(), password_entry.get(), isSUDO.get())
+
+
+
+def lock_sessions_all():
+    global list_of_clients
+
+    lock_cmd = "sudo loginctl lock-sessions"
+    print("the LOCK cmd = ", lock_cmd)
+
+    run_cmd_all(list_of_clients, lock_cmd, username_entry.get(), password_entry.get(), isSUDO=True)
+    
 def get_credentials():
 
     global username_entry, password_entry
@@ -358,7 +410,7 @@ def get_credentials():
     print("password: ",password_entry.get())
 
 def initialize(main_frame):
-    global term_screen, ctrl_screen, array_of_term_btns, list_of_ips, list_of_clients,  username_entry, password_entry
+    global term_screen, ctrl_screen, array_of_term_btns, list_of_ips, list_of_clients,  username_entry, password_entry, isSUDO
 
     array_of_term_btns = []
     list_of_ips = json_reader.read_file("./ips.json")  # this function return only the list of the ips scanned
@@ -392,6 +444,7 @@ def initialize(main_frame):
     
     connect_btn = tk.Button(ctrl_screen, text = "Connect", command=lambda : connect_all(list_of_ips, username_entry.get(), password_entry.get()))
     # connect_btn = tk.Button(ctrl_screen, text = "Connect", command = connect_default)
+
     isSUDO = tk.BooleanVar()
     isSUDO_check_box = tk.Checkbutton(ctrl_screen, text="is SUDO", command=lambda: print_SUDO_status(isSUDO) , variable = isSUDO)
     cmd_btn     = tk.Button(ctrl_screen, text = "CMD", command=lambda: run_cmd_all(
@@ -402,11 +455,16 @@ def initialize(main_frame):
                                                                                     isSUDO.get()
                                                                                 ))
     copy_btn    = tk.Button(ctrl_screen, text = "Copy")
+    msg_btn     = tk.Button(ctrl_screen, text = "Msg", command = send_msg_all)
+    lock_btn    = tk.Button(ctrl_screen, text = "Lock",command = lock_sessions_all)
+
 
     connect_btn.pack(fill= "x",pady=5)
     isSUDO_check_box.pack()
     cmd_btn.pack(fill= "x",pady=5)
+    msg_btn.pack(fill= "x",pady=5)
     copy_btn.pack(fill= "x",pady=5)
+    
 
     cmd_entry.place(relx=0, rely=0, relwidth=1)
     cmd_entry.insert(0,"Command to execute")
@@ -417,7 +475,6 @@ def initialize(main_frame):
     print("y_position: ", y_position)
     term_screen.place(relx=0,    y=y_position, relwidth=0.75, relheight=1)
     ctrl_screen.place(relx=0.75, y=y_position, relwidth=0.25, relheight=1)
-
 
     
 initialize(main_frame)
