@@ -1,3 +1,5 @@
 [
 {   "ip": "10.16.32.62",   "timestamp": "1773824626", "ports": [ {"port": 22, "proto": "tcp", "status": "open", "reason": "syn-ack", "ttl": 64} ] }
+,
+{   "ip": "10.16.32.61",   "timestamp": "1773824626", "ports": [ {"port": 22, "proto": "tcp", "status": "open", "reason": "syn-ack", "ttl": 64} ] }
 ]

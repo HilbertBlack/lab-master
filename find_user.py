@@ -74,43 +74,48 @@ def parse_w_output(lines):
 
         # formatted output (like printf)
         print(f"{user:<10} {tty:<6} {from_field:<15} {idle:<6} {cmd}")
-
+       
 
 
 def parse_w_to_dict(lines):
     result = []
+    try:
+        print("{ start }")
+        for line in lines.strip().split("\n"):
+            if not line.strip():
+                continue
 
-    for line in lines.strip().split("\n"):
-        if not line.strip():
-            continue
+            parts = line.split()
+            user = parts[0]
 
-        parts = line.split()
-        user = parts[0]
+            if len(parts) > 1 and (parts[1].startswith("tty") or parts[1].startswith("pts")):
+                tty = parts[1]
+                from_field = parts[2]
+                idle = parts[4]
+                cmd = " ".join(parts[5:])
+            else:
+                tty = "N/A"
+                from_field = parts[1]
+                idle = parts[3]
+                cmd = " ".join(parts[4:])
 
-        if len(parts) > 1 and (parts[1].startswith("tty") or parts[1].startswith("pts")):
-            tty = parts[1]
-            from_field = parts[2]
-            idle = parts[4]
-            cmd = " ".join(parts[5:])
-        else:
-            tty = "N/A"
-            from_field = parts[1]
-            idle = parts[3]
-            cmd = " ".join(parts[4:])
+            result.append({
+                "user": user,
+                "tty": tty,
+                "from": from_field,
+                "idle": idle,
+                "cmd": cmd
+            })
+    except Exception as e:
+        print("Got exception")
+        print(repr(e))
 
-        result.append({
-            "user": user,
-            "tty": tty,
-            "from": from_field,
-            "idle": idle,
-            "cmd": cmd
-        })
-
+    print("{ END }")   
     return result
+    
 
 
 # lines = '''
-# machine           10.16.32.62      22:17    3:48m  0.00s  0.04s sshd: machine [priv]
 # manikand tty2     -                Tue09    3:48m  0.05s  0.05s /usr/libexec/gnome-session-binary --session=ubuntu
 # '''
 # 

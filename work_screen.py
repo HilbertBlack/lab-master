@@ -1,3 +1,4 @@
+import traceback as traceback
 import tkinter as tk
 import paramiko as paramiko
 import remote_connection as remote_connection
@@ -8,6 +9,8 @@ import find_user as find_user
 common_user = "machine"
 common_pass = "machine@123"
 
+missing_ips_list = set()
+connected_ips_list = set()
 
 client_list_to_term_btn_dict = {}
 
@@ -48,16 +51,19 @@ YELLOW_ICON= tk.PhotoImage(file="./images/yellow.png").subsample(5)
 
 class term_btn:
 
-    client     = None
-
+    # components related to GUI
     main_frame = None
     term_btn   = None
     icon_img   = None
     caption    = None
     cover      = None
-    ip_address = None
-    active_users=None
-    conn_status= "not_conn"
+
+    # components related to the remote machine
+    client      = None
+    hostname    = ""
+    ip_address  = None
+    active_users= None
+    conn_status = "not_conn"
     
     def __init__(self, main_frame, ip_address, image = GREY_ICON):
 
@@ -79,19 +85,20 @@ class term_btn:
         self.cover.pack(side="left")
 
     def set_user_list(self, list_of_users):
+       
         self.active_users = list_of_users
-        net_str = self.ip_address 
+        net_str = self.hostname + "\n" + self.ip_address 
         for user in list_of_users:
             if (user[1] == "ssh"):
                 conn_type = "[R] "
             elif(user[1] == "local"):
                 conn_type = "[L] "
-            net_str =  net_str + "\n"+conn_type+ user[0]
+            net_str =  net_str + "\n" + conn_type+ user[0]
 
         self.caption.config(text=net_str)
         print("...........changing the user list ...............")
         #self.caption.config(text = "new\nnew")
-            
+
 def get_term_btn():
 
     global list_of_lists, array_of_term_btns
@@ -124,6 +131,9 @@ def change_term_btn_icon(ip_address, icon_status):
     main_frame.update()
 
 
+def print_SUDO_status(isSUDO):
+    print("is SUDO :", isSUDO.get())
+
 def set_term_btn_client(ip_address, client):
 
     global array_of_term_btns
@@ -146,6 +156,15 @@ def set_term_btn_users(ip_address, list_of_users):
 
     print("=== mapped ",ip_address, "with the correct users_list ===")
 
+def set_term_btn_hostname(ip_address, hostname):
+    global array_of_term_btns
+    for t_btn in array_of_term_btns:
+        if(t_btn.ip_address == ip_address):
+            t_btn.hostname = hostname.strip()
+            break
+
+    print("=== mapped ",hostname, "with the correct machine name ===")
+
 def reset_color_all_term_btns(icon_status):
     for t_btn in array_of_term_btns:
     
@@ -157,6 +176,7 @@ def reset_color_all_term_btns(icon_status):
             
     print("colour reseted")
 
+    main_frame.update()
         
 def restructure(event):
     global array_of_term_btns, list_of_ips
@@ -179,17 +199,23 @@ def restructure(event):
 
 
 def get_initial_data(client):
+    hostname = "hostname"
     init_cmd = "w -h"
     stdin, stdout, stderr, exit_code = remote_connection.run_cmd(client, init_cmd)
     #ip_address = client.get_transport().getpeername()[0]
-
-
+    
     list_of_users = []
     out_content = stdout.read().decode()
-    if(exit_code == 0):
+
+    t_stdin, t_stdout, t_stderr , t_exit_code = remote_connection.run_cmd(client, "hostname")
+    hostname = t_stdout.read().decode()
+
+    
+    
+    if(exit_code == 0 and t_exit_code == 0):
         ## success
         init_data_list = find_user.parse_w_to_dict(out_content)
-
+        print(init_data_list)
         for one_user in init_data_list:
             if ("ssh" in one_user['cmd']):
                 conn_type = "ssh"
@@ -197,41 +223,75 @@ def get_initial_data(client):
                 conn_type = "local"
             list_of_users.append([one_user['user'], conn_type])
 
+    else:
+        print("-------- obtained initial data failed ----------")
+    return list_of_users, hostname
     
-    return list_of_users
 def connect_all(list_of_ips, common_username, common_password):
 
-    global list_of_clients
+    global list_of_clients, connected_ips_list, missing_ips_list
     print("Number of IPs : ", len(list_of_ips))
     
     for ip in list_of_ips:
+
+        if(ip in connected_ips_list):
+            continue
+        
         temp_client = paramiko.SSHClient()
         temp_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         try:
             print("Trying to connect:", ip)
             temp_client.connect(hostname = ip, username = common_username, password = common_password, port = 22)
             list_of_clients.append(temp_client)
-            change_term_btn_icon( ip, GREEN_ICON)
             print("connected: ", ip)
 
             set_term_btn_client(ip, temp_client)
 
-            list_of_users =  get_initial_data(temp_client)
+            list_of_users, hostname = get_initial_data(temp_client)
             print("{ list users }")
             print(list_of_users)
 
+            set_term_btn_hostname(ip, hostname)
             set_term_btn_users(ip, list_of_users)
+            
+            connected_ips_list.add(ip)
+            missing_ips_list.discard(ip)
 
+            change_term_btn_icon( ip, GREEN_ICON)
+            
         except Exception as e:
             print("Connection failed :", ip) 
-            change_term_btn_icon( temp_client, RED_ICON  )
+            change_term_btn_icon(ip, GREY_ICON)
             print("Exception:", repr(e))
+
+            traceback.print_exc()
+
             
+            missing_ips_list.add(ip)
+            connected_ips_list.discard(ip)
+            
+            # this part if the number of user is comparetelivy more 
+            # print("writting to the missing_ips.list file")
+            # with open("missing_ips.list", "a") as f:
+            #     f.write(ip)
 
     main_frame.update()
             
     return list_of_clients
 
+
+
+def connect_missing_ips():
+
+    print(" ; adding missing client ; ")
+    missing_ips_list_copy = missing_ips_list.copy()
+
+    connect_all(missing_ips_list_copy, common_username, common_password)
+
+    print("Missing list")
+
+
+    
 def close_all(list_of_clients):
     if(len(list_of_clients) == 0):
         print("No active client now")   
@@ -269,13 +329,12 @@ def run_cmd_all(list_of_clients, cmd, username, password, isSUDO):
         print("client:", client.get_transport().getpeername()[0])
         content = stdout.read().decode()
         print(content)
-        with open("file.txt", "w") as f:
-            f.write(content)
+        # with open("file.txt", "w") as f:
+        #     f.write(content)
+
 
     return list_of_lists
 
-def print_SUDO_status(isSUDO):
-    print("is sudo :", isSUDO.get())
 
 def connect_default():
     client = paramiko.SSHClient()
@@ -343,8 +402,6 @@ def initialize(main_frame):
                                                                                     isSUDO.get()
                                                                                 ))
     copy_btn    = tk.Button(ctrl_screen, text = "Copy")
-
-    
 
     connect_btn.pack(fill= "x",pady=5)
     isSUDO_check_box.pack()
