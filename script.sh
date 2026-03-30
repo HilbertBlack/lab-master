@@ -4,8 +4,13 @@
 count=0
 while true;
 do
-	echo "hello ${count}"
+	stdbuf -oL echo "hello ${count}"
 	sleep 1
 	((count++))
-	
+
+	if [[ count -eq 11  ]];then
+		break
+	fi
 done
+
+exit 0

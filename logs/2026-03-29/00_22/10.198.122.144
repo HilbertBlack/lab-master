@@ -1,0 +1,14 @@
+bash: line 1: Command: command not found
+EXIT_CODE: 127
+bash: line 1: please: command not found
+EXIT_CODE: 127
+password
+bash: line 1: please: command not found
+EXIT_CODE: 127
+password
+user
+EXIT_CODE: 0
+password
+[sudo] password for user: 
+root
+EXIT_CODE: 0

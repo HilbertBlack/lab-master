@@ -1,0 +1,71 @@
+bash: line 1: WHOAMI: command not found
+EXIT_CODE: 127
+password
+[sudo] password for user: 
+Reading package lists... 0%Reading package lists... 100%Reading package lists... Done
+Building dependency tree... 0%Building dependency tree... 0%Building dependency tree... 50%Building dependency tree... 50%Building dependency tree... Done
+Reading state information... 0% Reading state information... 0%Reading state information... Done
+0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+EXIT_CODE: 0
+password
+[sudo] password for user: 
+Reading package lists... 0%Reading package lists... 100%Reading package lists... Done
+Building dependency tree... 0%Building dependency tree... 0%Building dependency tree... 50%Building dependency tree... 50%Building dependency tree... Done
+Reading state information... 0% Reading state information... 0%Reading state information... Done
+neofetch is already the newest version (7.1.0-4).
+0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+EXIT_CODE: 0
+password
+[sudo] password for user: 
+Reading package lists... 0%Reading package lists... 100%Reading package lists... Done
+Building dependency tree... 0%Building dependency tree... 0%Building dependency tree... 50%Building dependency tree... 50%Building dependency tree... Done
+Reading state information... 0% Reading state information... 0%Reading state information... Done
+nmap is already the newest version (7.93+dfsg1-1).
+0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+EXIT_CODE: 0
+password
+[sudo] password for user: 
+Reading package lists... 0%Reading package lists... 100%Reading package lists... Done
+Building dependency tree... 0%Building dependency tree... 0%Building dependency tree... 50%Building dependency tree... 50%Building dependency tree... Done
+Reading state information... 0% Reading state information... 0%Reading state information... Done
+The following packages were automatically installed and are no longer required:
+  caca-utils chafa jp2a libchafa0 toilet toilet-fonts
+Use 'sudo apt autoremove' to remove them.
+The following packages will be REMOVED:
+  neofetch*
+0 upgraded, 0 newly installed, 1 to remove and 0 not upgraded.
+After this operation, 360 kB disk space will be freed.
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 358530 files and directories currently installed.)
+Removing neofetch (7.1.0-4) ...
+Processing triggers for man-db (2.11.2-2) ...
+EXIT_CODE: 0
+password
+[sudo] password for user: 
+Reading package lists... 0%Reading package lists... 100%Reading package lists... Done
+Building dependency tree... 0%Building dependency tree... 0%Building dependency tree... 50%Building dependency tree... 50%Building dependency tree... Done
+Reading state information... 0% Reading state information... 0%Reading state information... Done
+The following NEW packages will be installed:
+  neofetch
+0 upgraded, 1 newly installed, 0 to remove and 0 not upgraded.
+Need to get 0 B/81.8 kB of archives.
+After this operation, 360 kB of additional disk space will be used.
+Selecting previously unselected package neofetch.
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 358525 files and directories currently installed.)
+Preparing to unpack .../neofetch_7.1.0-4_all.deb ...
+Unpacking neofetch (7.1.0-4) ...
+Setting up neofetch (7.1.0-4) ...
+Processing triggers for man-db (2.11.2-2) ...
+EXIT_CODE: 0
+password
+hello 0
+hello 1
+hello 2
+hello 3
+hello 4
+hello 5
+hello 6
+hello 7
+hello 8
+hello 9
+hello 10
+EXIT_CODE: 0

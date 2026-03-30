@@ -1,0 +1,25 @@
+ CMD_EXECUTED = whoami
+user
+EXIT_CODE: 0
+ CMD_EXECUTED = ls
+basic
+cpumode
+Desktop
+Documents
+Downloads
+Music
+Pictures
+Public
+Templates
+Videos
+EXIT_CODE: 0
+ CMD_EXECUTED = users
+user
+EXIT_CODE: 0
+ CMD_EXECUTED = loginctl list-sessions
+SESSION  UID USER SEAT  TTY
+      2 1000 user seat0 
+      6 1000 user       
+
+2 sessions listed.
+EXIT_CODE: 0

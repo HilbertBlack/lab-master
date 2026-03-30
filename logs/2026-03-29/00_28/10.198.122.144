@@ -1,0 +1,40 @@
+password
+[sudo] password for user: 
+Reading package lists... 0%Reading package lists... 100%Reading package lists... Done
+Building dependency tree... 0%Building dependency tree... 0%Building dependency tree... 50%Building dependency tree... 50%Building dependency tree... Done
+Reading state information... 0% Reading state information... 0%Reading state information... Done
+neofetch is already the newest version (7.1.0-4).
+0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+EXIT_CODE: 0
+password
+[?25l[?7l[38;5;8m[1m        #####
+[38;5;8m[1m       #######
+[38;5;8m[1m       ##[37m[0m[1mO[38;5;8m[1m#[37m[0m[1mO[38;5;8m[1m##
+[38;5;8m[1m       #[0m[33m[1m#####[38;5;8m[1m#
+[38;5;8m[1m     ##[37m[0m[1m##[0m[33m[1m###[37m[0m[1m##[38;5;8m[1m##
+[38;5;8m[1m    #[37m[0m[1m##########[38;5;8m[1m##
+[38;5;8m[1m   #[37m[0m[1m############[38;5;8m[1m##
+[38;5;8m[1m   #[37m[0m[1m############[38;5;8m[1m###
+[0m[33m[1m  ##[38;5;8m[1m#[37m[0m[1m###########[38;5;8m[1m##[0m[33m[1m#
+[0m[33m[1m######[38;5;8m[1m#[37m[0m[1m#######[38;5;8m[1m#[0m[33m[1m######
+[0m[33m[1m#######[38;5;8m[1m#[37m[0m[1m#####[38;5;8m[1m#[0m[33m[1m#######
+[0m[33m[1m  #####[38;5;8m[1m#######[0m[33m[1m#####[0m
+[12A[9999999D[24C[0m[1m[37m[1muser[0m@[37m[1mboss[0m 
+[24C[0m---------[0m 
+[24C[0m[1mOS[0m[0m:[0m BOSS GNU/Linux 10 (pragya) x86_64[0m 
+[24C[0m[1mHost[0m[0m:[0m Acer One Z14-55N[0m 
+[24C[0m[1mKernel[0m[0m:[0m 6.1.0-40-amd64[0m 
+[24C[0m[1mUptime[0m[0m:[0m 9 hours, 36 mins[0m 
+[24C[0m[1mPackages[0m[0m:[0m 2757 (dpkg)[0m 
+[24C[0m[1mShell[0m[0m:[0m bash 5.2.15[0m 
+[24C[0m[1mResolution[0m[0m:[0m 1366x768[0m 
+[24C[0m[1mTerminal[0m[0m:[0m /dev/pts/3[0m 
+[24C[0m[1mCPU[0m[0m:[0m Intel i3-N305 (8) @ 3.800GHz[0m 
+[24C[0m[1mGPU[0m[0m:[0m Intel Alder Lake-N [UHD Graphics][0m 
+[24C[0m[1mMemory[0m[0m:[0m 4283MiB / 7681MiB[0m 
+
+[24C[30m[40m   [31m[41m   [32m[42m   [33m[43m   [34m[44m   [35m[45m   [36m[46m   [37m[47m   [m
+[24C[38;5;8m[48;5;8m   [38;5;9m[48;5;9m   [38;5;10m[48;5;10m   [38;5;11m[48;5;11m   [38;5;12m[48;5;12m   [38;5;13m[48;5;13m   [38;5;14m[48;5;14m   [38;5;15m[48;5;15m   [m
+
+
+[?25h[?7hEXIT_CODE: 0

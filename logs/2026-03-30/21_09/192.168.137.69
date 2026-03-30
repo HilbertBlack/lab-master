@@ -1,0 +1,40 @@
+CMD_EXECUTED = sudo loginctl lock-sessions
+password
+[sudo] password for user: 
+EXIT_CODE: 0
+CMD_EXECUTED = sudo loginctl lock-sessions
+password
+[sudo] password for user: 
+EXIT_CODE: 0
+CMD_EXECUTED = sudo loginctl lock-sessions
+password
+[sudo] password for user: 
+EXIT_CODE: 0
+CMD_EXECUTED = sudo loginctl lock-sessions
+password
+[sudo] password for user: 
+EXIT_CODE: 0
+CMD_EXECUTED = sudo loginctl lock-sessions
+password
+[sudo] password for user: 
+EXIT_CODE: 0
+CMD_EXECUTED = sudo loginctl lock-sessions
+password
+[sudo] password for user: 
+EXIT_CODE: 0
+CMD_EXECUTED = sudo loginctl lock-sessions
+password
+[sudo] password for user: 
+EXIT_CODE: 0
+CMD_EXECUTED = sudo loginctl lock-sessions
+password
+[sudo] password for user: 
+EXIT_CODE: 0
+CMD_EXECUTED = sudo loginctl lock-sessions
+password
+[sudo] password for user: 
+EXIT_CODE: 0
+CMD_EXECUTED = sudo loginctl lock-sessions
+password
+[sudo] password for user: 
+EXIT_CODE: 0

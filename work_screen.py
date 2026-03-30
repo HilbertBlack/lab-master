@@ -1,14 +1,23 @@
 import traceback as traceback
 import tkinter as tk
 import paramiko as paramiko
+import os as os
+import datetime as datetime
 import remote_connection as remote_connection
 import json_reader as json_reader
 import find_user as find_user
 import window_functions as window_functions
 import get_password 
 
-common_user = "machine"
-common_pass = "machine@123"
+
+current_date = datetime.date.today()
+current_time = datetime.datetime. now().strftime("%H_%M")
+print("staring date:", current_date, " starting time:", current_time)
+
+os.makedirs(f"./logs/{current_date}/{current_time}", exist_ok=True)
+
+common_user = "user"
+common_pass = "password"
 
 isSUDO = None
 
@@ -32,6 +41,7 @@ cmd_btn     = None
 copy_btn    = None
 msg_btn     = None
 lock_btn    = None
+shut_down_btn=None
 
 username_entry =None
 password_entry =None
@@ -52,6 +62,13 @@ GREEN_ICON = tk.PhotoImage(file="./images/green.png").subsample(5)
 GREY_ICON  = tk.PhotoImage(file="./images/grey.png").subsample(5)
 RED_ICON   = tk.PhotoImage(file="./images/red.png").subsample(5)
 YELLOW_ICON= tk.PhotoImage(file="./images/yellow.png").subsample(5)
+RED_CROSS_ICON = tk.PhotoImage(file="./images/redCross.png").subsample(5)
+
+MESSAGE_ICON = tk.PhotoImage(file="./images/message.png")
+LOCK_ICON    = tk.PhotoImage(file="./images/lock.png")
+SHUTDOWN_ICON= tk.PhotoImage(file="./images/shutdown.png")
+
+image_dict = { "MESSAGE_ICON": MESSAGE_ICON, "LOCK_ICON": LOCK_ICON, "SHUTDOWN_ICON": SHUTDOWN_ICON}
 
 
 class term_btn:
@@ -79,9 +96,9 @@ class term_btn:
         self.cover = tk.Frame(main_frame, bg= "green")
         
         self.icon_img = image
-        self.term_btn = tk.Button(self.cover, image=self.icon_img, width=105, height=90)
+        self.term_btn = tk.Button(self.cover, image=self.icon_img, width=105, height=90, command= lambda: get_password.options_for_single_host(image_dict, main_frame, self, username_entry.get(), password_entry.get()))
         self.term_btn.image = self.icon_img
-        self.caption  = tk.Label(self.cover, text=ip_address) 
+        self.caption  = tk.Label(self.cover, text=ip_address, width=14) 
         self.ip_address= ip_address
         
         self.term_btn.pack(side="left")
@@ -92,14 +109,18 @@ class term_btn:
     def set_user_list(self, list_of_users):
        
         self.active_users = list_of_users
-        net_str = self.hostname + "\n" + self.ip_address 
+        net_str = self.hostname[:10] + "\n" + self.ip_address 
+
+        count = 0
         for user in list_of_users:
             if (user[1] == "ssh"):
                 conn_type = "[R] "
             elif(user[1] == "local"):
                 conn_type = "[L] "
             net_str =  net_str + "\n" + conn_type+ user[0]
-
+            count= count + 1
+            if(count == 3):
+                break
         self.caption.config(text=net_str)
         print("...........changing the user list ...............")
         #self.caption.config(text = "new\nnew")
@@ -131,6 +152,8 @@ def change_term_btn_icon(ip_address, icon_status):
             if(icon_status == GREEN_ICON):
                 t_btn.conn_status = "alive"
             elif (icon_status == GREY_ICON):
+                t_btn.conn_status = "not_conn"
+            elif (icon_status == RED_CROSS_ICON):
                 t_btn.conn_status = "not_conn"
             else:
                 t_btn.conn_status = "alive"
@@ -190,7 +213,7 @@ def reset_color_all_term_btns(icon_status):
 def restructure(event):
     global array_of_term_btns, list_of_ips
     # print("got btns", len(array_of_term_btns))
-    no_of_cols = event.width // DEFAULT_ICON_SIZE[0] - 1
+    no_of_cols = event.width // array_of_term_btns[0].cover.winfo_width()
 
     x=0
     y=0
@@ -208,19 +231,23 @@ def restructure(event):
 
 
 def get_initial_data(client):
+
+    list_of_users = []
+
     hostname = "hostname"
     init_cmd = "w -h"
-    stdin, stdout, stderr, exit_code = remote_connection.run_cmd(client, init_cmd)
-    #ip_address = client.get_transport().getpeername()[0]
     
-    list_of_users = []
+    stdin, stdout, stderr = remote_connection.run_cmd(client, init_cmd)
+    #ip_address = client.get_transport().getpeername()[0]
     out_content = stdout.read().decode()
 
-    t_stdin, t_stdout, t_stderr , t_exit_code = remote_connection.run_cmd(client, "hostname")
+    t_stdin, t_stdout, t_stderr = remote_connection.run_cmd(client, "hostname")
     hostname = t_stdout.read().decode()
 
-    
-    
+
+    exit_code   = stdout.channel.recv_exit_status()
+    t_exit_code = t_stdout.channel.recv_exit_status()
+        
     if(exit_code == 0 and t_exit_code == 0):
         ## success
         init_data_list = find_user.parse_w_to_dict(out_content)
@@ -270,7 +297,7 @@ def connect_all(list_of_ips, common_username, common_password):
             
         except Exception as e:
             print("Connection failed :", ip) 
-            change_term_btn_icon(ip, GREY_ICON)
+            change_term_btn_icon(ip, RED_CROSS_ICON)
             print("Exception:", repr(e))
 
             traceback.print_exc()
@@ -315,18 +342,32 @@ def run_cmd_all(list_of_clients, cmd, username, password, isSUDO):
     reset_color_all_term_btns(YELLOW_ICON)
 
     global list_of_lists
+    
     list_of_lists = []
     
     for client in list_of_clients:
         stdin = stdout = stderr = None
         ip_address = client.get_transport().getpeername()[0]
         if (isSUDO == False):
-            stdin, stdout, stderr, exit_code = remote_connection.run_cmd(client, cmd)
+            stdin, stdout, stderr = remote_connection.run_cmd(client, cmd)
         else:
-            stdin, stdout, stderr, exit_code = remote_connection.run_sudo_cmd(client, cmd, username, password)
-            
-        list_of_lists.append([stdin, stdout, stderr, exit_code])
+            stdin, stdout, stderr = remote_connection.run_sudo_cmd(client, cmd, username, password)
 
+        content = ""
+        errors  = ""
+        print("client:", client.get_transport().getpeername()[0])
+        print(" ===== content =====")
+        for line in stdout:
+            print(line, end="")
+            content += line
+
+        print(" ===== errors =====")
+        for line in stderr:
+            print(line, end="")
+            errors += line
+
+        exit_code = stdout.channel.recv_exit_status()
+    
         if(exit_code == 0):
             print("success!!!")
             change_term_btn_icon(ip_address, GREEN_ICON)
@@ -334,16 +375,20 @@ def run_cmd_all(list_of_clients, cmd, username, password, isSUDO):
             print("{ FAILED }")
             change_term_btn_icon(ip_address, RED_ICON)
 
-            print(stdout)
-            continue
-            
-        print("client:", client.get_transport().getpeername()[0])
-        content = stdout.read().decode()
-        print(content)
-        # with open("file.txt", "w") as f:
-        #     f.write(content)
+        print("EXIT CODE: ", exit_code)
 
+        list_of_lists.append([ip_address, stdin, stdout, stderr, exit_code])
 
+        with open(f"./logs/{current_date}/{current_time}/{ip_address}", "a") as f:
+            cmd_str = "CMD_EXECUTED = " + cmd + "\n"
+            f.write(cmd_str)
+            f.write(content)
+            f.write(errors)
+            exit_str = "EXIT_CODE: " + str(exit_code) + "\n"
+            f.write(exit_str)
+        
+
+        
     return list_of_lists
 
 
@@ -389,9 +434,10 @@ def send_msg_all():
     print("final : ", final_msg)
 
    # connect_default(final_msg)
-    
-    run_cmd_all(list_of_clients, final_msg, username_entry.get(), password_entry.get(), isSUDO.get())
-
+    try:
+        run_cmd_all(list_of_clients, final_msg, username_entry.get(), password_entry.get(), isSUDO = True )
+    except Exception as e:
+        traceback.print_exc()
 
 
 def lock_sessions_all():
@@ -401,7 +447,16 @@ def lock_sessions_all():
     print("the LOCK cmd = ", lock_cmd)
 
     run_cmd_all(list_of_clients, lock_cmd, username_entry.get(), password_entry.get(), isSUDO=True)
-    
+
+def shut_down_all():
+    global list_of_clients
+
+    shutdown_cmd = "sudo loginctl shutdown now"
+    print("the LOCK cmd = ", lock_cmd)
+
+    run_cmd_all(list_of_clients, lock_cmd, username_entry.get(), password_entry.get(), isSUDO=True)
+
+
 def get_credentials():
 
     global username_entry, password_entry
@@ -457,14 +512,15 @@ def initialize(main_frame):
     copy_btn    = tk.Button(ctrl_screen, text = "Copy")
     msg_btn     = tk.Button(ctrl_screen, text = "Msg", command = send_msg_all)
     lock_btn    = tk.Button(ctrl_screen, text = "Lock",command = lock_sessions_all)
-
+    shut_down_btn=tk.Button(ctrl_screen, text = "Shut Down", command = shut_down_all)
 
     connect_btn.pack(fill= "x",pady=5)
     isSUDO_check_box.pack()
     cmd_btn.pack(fill= "x",pady=5)
     msg_btn.pack(fill= "x",pady=5)
     copy_btn.pack(fill= "x",pady=5)
-    
+    lock_btn.pack(fill = "x", pady=5)
+    shut_down_btn.pack(fill = "x", pady=5)
 
     cmd_entry.place(relx=0, rely=0, relwidth=1)
     cmd_entry.insert(0,"Command to execute")
@@ -473,8 +529,8 @@ def initialize(main_frame):
     
     y_position = cmd_entry.winfo_height()
     print("y_position: ", y_position)
-    term_screen.place(relx=0,    y=y_position, relwidth=0.75, relheight=1)
-    ctrl_screen.place(relx=0.75, y=y_position, relwidth=0.25, relheight=1)
+    term_screen.place(relx=0,    y=y_position, relwidth=0.85, relheight=1)
+    ctrl_screen.place(relx=0.85, y=y_position, relwidth=0.15, relheight=1)
 
     
 initialize(main_frame)
