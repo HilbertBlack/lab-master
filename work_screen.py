@@ -3,6 +3,7 @@ import tkinter as tk
 import paramiko as paramiko
 import os as os
 import datetime as datetime
+import configparser as configparser
 import remote_connection as remote_connection
 import json_reader as json_reader
 import find_user as find_user
@@ -13,14 +14,21 @@ from tkinter import font
 from tkinter import filedialog
 
 
+
+
 current_date = datetime.date.today()
 current_time = datetime.datetime. now().strftime("%H_%M")
 print("staring date:", current_date, " starting time:", current_time)
 
 os.makedirs(f"./logs/{current_date}/{current_time}", exist_ok=True)
 
-common_user = "user"
-common_pass = "password"
+config = configparser.ConfigParser()
+config.read("./config.ini")
+
+
+
+common_user = "gokul"
+common_pass = "Gokul@333"
 
 isSUDO = None
 isSTFM = 0
@@ -527,7 +535,7 @@ def lock_user():
     global list_of_clients
     username = get_password.get_username(main_frame)
     
-    lock_user_cmd = "sudo passwd -l " + username
+    lock_user_cmd = config.get("system_cmd", "LOCK_USER") + " " + username
     print("the LOCK user  cmd = ", lock_user_cmd)
 
     run_cmd_all(list_of_clients, lock_user_cmd, username_entry.get(), password_entry.get(), isSUDO=True)
@@ -536,7 +544,11 @@ def unlock_user():
     global list_of_clients
     username = get_password.get_username(main_frame)
 
-    unlock_user_cmd = "sudo passwd -u " + username
+    if(username == ""):
+        print("FIELD EMPTY")
+        return -1
+
+    unlock_user_cmd = config.get("system_cmd", "UNLOCK_USER") + " " + username
     print("the UNLOCK user cmd = ", unlock_user_cmd)
 
     run_cmd_all(list_of_clients, unlock_user_cmd, username_entry.get(), password_entry.get(), isSUDO=True)
@@ -545,7 +557,7 @@ def unlock_user():
 def lock_sessions_all():
     global list_of_clients
 
-    lock_cmd = "sudo loginctl lock-sessions"
+    lock_cmd = config.get("system_cmd", "LOCK_SCREEN")
     print("the LOCK cmd = ", lock_cmd)
 
     run_cmd_all(list_of_clients, lock_cmd, username_entry.get(), password_entry.get(), isSUDO=True)
@@ -553,7 +565,7 @@ def lock_sessions_all():
 def shut_down_all():
     global list_of_clients
 
-    shutdown_cmd = "sudo loginctl shutdown now"
+    shutdown_cmd = config.get("system_cmd", "SHUT_DOWN_NOW")
     print("the LOCK cmd = ", shutdown_cmd)
 
     run_cmd_all(list_of_clients, lock_cmd, username_entry.get(), password_entry.get(), isSUDO=True)

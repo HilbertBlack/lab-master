@@ -1,11 +1,17 @@
 import tkinter as tk
 import remote_connection
 import shell_process
+import configparser as configparser
 
 password=""
 username=""
 
-    
+
+config = configparser.ConfigParser()
+config.read("./config.ini")
+
+
+print(config.get("system_cmd","LOCK_SCREEN"))
 
 def on_click_OK(entry, holding_frame):
     global password
@@ -146,9 +152,8 @@ def send_msg_single(main_frame, term_btn, username, password):
 
 def lock_screen_single(main_frame, term_btn, username, password):
 
-
 #    resutl = remote_connection.run_sudo_cmd(client, cmd, username, password)
-    final_msg = "sudo loginctl lock-sessions"
+    final_msg = config.get("system_cmd", "LOCK_SCREEN")
    # connect_default(final_msg)
     try:
         remote_connection.run_sudo_cmd(term_btn. client, final_msg, username, password)
@@ -159,7 +164,7 @@ def shut_down_single(main_frame, term_btn, username, password):
 
 
 #    resutl = remote_connection.run_sudo_cmd(client, cmd, username, password)
-    final_msg = "sudo shutdown now"
+    final_msg = config.get("system_cmd", "SHUT_DOWN_NOW")
    # connect_default(final_msg)
     try:
         remote_connection.run_sudo_cmd(term_btn. client, final_msg, username, password)
