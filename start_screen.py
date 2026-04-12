@@ -14,8 +14,11 @@ def initialize(add_to_parent_frame):
 
     button_panel = tk.Frame(screen, bg="cyan")
 
-    custom_font = font.nametofont("TkDefaultFont")
-    custom_font.configure(size = 14)
+    default_font = font.nametofont("TkDefaultFont")
+    custom_font  = default_font.copy()
+
+    custom_font.configure(size=16)
+    
 
     over_the_network_btn = tk.Button(button_panel, text="Over the Network", font=custom_font)
     row_col_btn          = tk.Button(button_panel, text="Row Col Network",  font=custom_font)

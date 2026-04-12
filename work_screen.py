@@ -8,7 +8,9 @@ import json_reader as json_reader
 import find_user as find_user
 import window_functions as window_functions
 import get_password 
-
+import rearrange as rearrange
+from tkinter import font
+from tkinter import filedialog
 
 current_date = datetime.date.today()
 current_time = datetime.datetime. now().strftime("%H_%M")
@@ -30,6 +32,7 @@ array_of_term_btns = []
 list_of_ips = []
 list_of_clients = []
 list_of_lists = []
+list_of_elements = []
 
 term_screen=None
 ctrl_screen=None
@@ -42,6 +45,12 @@ copy_btn    = None
 msg_btn     = None
 lock_btn    = None
 shut_down_btn=None
+
+src_file_label=None
+des_file_label=None
+
+src_browse_btn=None
+des_browse_btn=None
 
 username_entry =None
 password_entry =None
@@ -64,11 +73,17 @@ RED_ICON   = tk.PhotoImage(file="./images/red.png").subsample(5)
 YELLOW_ICON= tk.PhotoImage(file="./images/yellow.png").subsample(5)
 RED_CROSS_ICON = tk.PhotoImage(file="./images/redCross.png").subsample(5)
 
-MESSAGE_ICON = tk.PhotoImage(file="./images/message.png")
-LOCK_ICON    = tk.PhotoImage(file="./images/lock.png")
-SHUTDOWN_ICON= tk.PhotoImage(file="./images/shutdown.png")
+MESSAGE_ICON = tk.PhotoImage(file="./images/message.png").subsample(12)
+LOCK_ICON    = tk.PhotoImage(file="./images/lock.png").subsample(12)
+SHUTDOWN_ICON= tk.PhotoImage(file="./images/shutdown.png").subsample(12)
+RUN_ICON     = tk.PhotoImage(file="./images/run.png").subsample(14)
+COPY_ICON    = tk.PhotoImage(file="./images/clip_board.png").subsample(14)
+
 
 image_dict = { "MESSAGE_ICON": MESSAGE_ICON, "LOCK_ICON": LOCK_ICON, "SHUTDOWN_ICON": SHUTDOWN_ICON}
+
+src_file_path = tk.StringVar(value="src  ")
+des_file_path = tk.StringVar(value="des  ")
 
 
 class term_btn:
@@ -229,6 +244,11 @@ def restructure(event):
             x = 0
             y = y + btn.cover.winfo_height()           
 
+def grid_restructure(event):
+    global list_of_elements
+
+    print("before :", len(list_of_elements))
+    rearrange.grid_arrange(main_frame, list_of_elements)
 
 def get_initial_data(client):
 
@@ -314,7 +334,6 @@ def connect_all(list_of_ips, common_username, common_password):
     main_frame.update()
             
     return list_of_clients
-
 
 
 def connect_missing_ips():
@@ -464,8 +483,31 @@ def get_credentials():
     print("user: ",username_entry.get())
     print("password: ",password_entry.get())
 
+def get_src_file_path():
+
+    global src_file_path
+    
+    selected_file = filedialog.askopenfilename()
+
+    print("SOURCE SELECTED: ", selected_file)
+    
+    src_file_path.set( selected_file.split('/')[-1][:5] )
+
+def get_des_file_path():
+
+    global des_file_path
+    
+    selected_file = filedialog.askopenfilename()
+
+    print("DESTINATION SELECTED: ", selected_file)
+
+
+    
+    des_file_path.set( selected_file.split('/')[-1][:5] )
+
+    
 def initialize(main_frame):
-    global term_screen, ctrl_screen, array_of_term_btns, list_of_ips, list_of_clients,  username_entry, password_entry, isSUDO
+    global term_screen, ctrl_screen, array_of_term_btns, list_of_ips, list_of_clients, list_of_elements, username_entry, password_entry, isSUDO
 
     array_of_term_btns = []
     list_of_ips = json_reader.read_file("./ips.json")  # this function return only the list of the ips scanned
@@ -473,7 +515,8 @@ def initialize(main_frame):
     term_screen = tk.Frame(main_frame, bg="#2e3436")
     ctrl_screen = tk.Frame(main_frame, bg="#555753")
 
-    cmd_entry   = tk.Entry(main_frame)
+    # cmd_entry   = tk.Entry(main_frame)
+    cmd_entry   = tk.Entry(ctrl_screen)
     
     #
     # buttons for the left panel
@@ -483,18 +526,20 @@ def initialize(main_frame):
     # buttons for the right panel
     # once all the button is load we can try to connect or exec command
 
-    username_label = tk.Label(ctrl_screen, text = "User name:")
-    username_entry = tk.Entry(ctrl_screen)
+    custom_font = font.nametofont("TkDefaultFont").copy()
+    custom_font.configure(size=11)
+
+    username_label = tk.Label(ctrl_screen, text = "User name:", font=custom_font)
+    username_entry = tk.Entry(ctrl_screen                     , font=custom_font)
     username_entry.insert(0,common_user)
-    password_label = tk.Label(ctrl_screen, text = "Password:")
-    password_entry = tk.Entry(ctrl_screen, show = "*")
+    password_label = tk.Label(ctrl_screen, text = "Password:" , font=custom_font)
+    password_entry = tk.Entry(ctrl_screen, show = "*"         , font=custom_font)
     password_entry.insert(0,common_pass)
 
-    username_label.pack()
-    username_entry.pack()
-    password_label.pack()
-    password_entry.pack()
-
+    src_file_label = tk.Label(ctrl_screen, textvariable=src_file_path, font=custom_font)
+    des_file_label = tk.Label(ctrl_screen, textvariable=des_file_path, font=custom_font)
+    
+    
     main_frame.update()
     
     connect_btn = tk.Button(ctrl_screen, text = "Connect", command=lambda : connect_all(list_of_ips, username_entry.get(), password_entry.get()))
@@ -514,34 +559,44 @@ def initialize(main_frame):
     lock_btn    = tk.Button(ctrl_screen, text = "Lock",command = lock_sessions_all)
     shut_down_btn=tk.Button(ctrl_screen, text = "Shut Down", command = shut_down_all)
 
-    connect_btn.pack(fill= "x",pady=5)
-    isSUDO_check_box.pack()
-    cmd_btn.pack(fill= "x",pady=5)
-    msg_btn.pack(fill= "x",pady=5)
-    copy_btn.pack(fill= "x",pady=5)
-    lock_btn.pack(fill = "x", pady=5)
-    shut_down_btn.pack(fill = "x", pady=5)
+    src_browse_btn = tk.Button(ctrl_screen, text="src", command = get_src_file_path)
+    des_browse_btn = tk.Button(ctrl_screen, text="des", command = get_des_file_path)
 
-    cmd_entry.place(relx=0, rely=0, relwidth=1)
-    cmd_entry.insert(0,"Command to execute")
+    
+
+    msg_btn.config(image = MESSAGE_ICON)
+    lock_btn.config(image= LOCK_ICON)
+    shut_down_btn.config(image=SHUTDOWN_ICON)
+    copy_btn.config(image=COPY_ICON)
+    cmd_btn.config(image =RUN_ICON)
+
+    msg_btn.image       = MESSAGE_ICON
+    lock_btn.image      = LOCK_ICON
+    shut_down_btn.image = SHUTDOWN_ICON
+    copy_btn.image      = COPY_ICON
+    cmd_btn.image       = RUN_ICON
+
+    list_of_elements = [
+    username_label,username_entry,password_label,password_entry,
+connect_btn,src_file_label, src_browse_btn, des_file_label, des_browse_btn,
+                    cmd_entry,isSUDO_check_box,
+        cmd_btn,msg_btn,copy_btn,lock_btn,shut_down_btn
+            ]
+
+    #cmd_entry.place(relx=0, rely=0, relwidth=1)
+    #cmd_entry.insert(0,"Command to execute")
 
     main_frame.update()
+    rearrange.grid_arrange(main_frame, list_of_elements)
     
-    y_position = cmd_entry.winfo_height()
-    print("y_position: ", y_position)
-    term_screen.place(relx=0,    y=y_position, relwidth=0.85, relheight=1)
-    ctrl_screen.place(relx=0.85, y=y_position, relwidth=0.15, relheight=1)
+    #y_position = cmd_entry.winfo_height()
+    #print("y_position: ", y_position)
+    ctrl_screen.place(relx=0, rely=0, relwidth=1, relheight=0.25)
+    term_screen.place(relx=0, rely=0.25, relwidth=1, relheight=0.75)
 
-    
 initialize(main_frame)
 
-
-# green_btn = term_lm(term_screen, "192.168.136.100", GREEN_ICON )
-# grey_btn  = term_lm(term_screen, "192.168.136.101", GREY_ICON)
-# red_btn   = term_lm(ctrl_screen, "192.168.136.102", RED_ICON)
-# yellow_btn= term_lm(ctrl_screen, "192.168.136.103", YELLOW_ICON)
-# 
-
 term_screen.bind("<Configure>", restructure)
+ctrl_screen.bind("<Configure>", grid_restructure)
 
 main_frame.mainloop()
