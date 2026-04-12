@@ -1,0 +1,10 @@
+CMD_EXECUTED = sudo passwd -l comn
+123456
+[sudo] password for cs: 
+passwd: password expiry information changed.
+EXIT_CODE: 0
+CMD_EXECUTED = sudo passwd -u comn
+123456
+[sudo] password for cs: 
+passwd: password expiry information changed.
+EXIT_CODE: 0

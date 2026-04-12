@@ -1,0 +1,8 @@
+CMD_EXECUTED = GUI_USER=$(loginctl list-sessions --no-legend | awk '$4=="seat0" {print $3; exit}');
+    GUI_UID=$(id -u "$GUI_USER");
+    [ -n "$GUI_USER" ] && sudo -u "$GUI_USER" DISPLAY=:0 XDG_RUNTIME_DIR=/run/user/$GUI_UID notify-send "hello
+"
+    
+169225
+169225
+EXIT_CODE: 0

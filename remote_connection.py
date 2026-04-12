@@ -32,6 +32,8 @@ def run_sudo_cmd(client, cmd, username, password):
 
 def copy_file(client, src_file_path, des_file_path):
 
+    print("started copying to files")
+
 
     try:
         ## opening sftp channel
@@ -43,7 +45,10 @@ def copy_file(client, src_file_path, des_file_path):
         print("File upload \033[31mFAILED\033[0m")
         print("Exception:". repr(e))
         traceback.print_exc()
-        
+
+        return -1
+    print("finished copying")
+    return 0 
 # # creating a client instance
 # client = paramiko.SSHClient()
 # 

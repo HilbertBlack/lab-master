@@ -2,7 +2,7 @@ import tkinter as tk
 import remote_connection
 
 password=""
-
+username=""
 
     
 
@@ -47,7 +47,7 @@ str_msg_cmd = ""
 def on_click_OK_for_question(text_area, holding_frame):
     global str_msg_cmd
     str_msg_cmd = text_area.get("1.0","end")
-    print(" ", str_msg_cmd)
+    print("The message:", str_msg_cmd)
     
     holding_frame.destroy()
      
@@ -81,8 +81,50 @@ def get_msg_details(main_frame):
     return str_msg_cmd
 
 
+# this part is get the username to lock or unlock from
+# admin username this function will return entered in
+# the popup window
 
 
+def on_click_OK_for_username(username_entry, holding_frame):
+
+    global username
+    
+    username = username_entry.get()
+    print(" ", str_msg_cmd)
+    
+    holding_frame.destroy()
+
+    return username
+    
+def get_username(main_frame):
+
+    global username
+    
+    username_dialog_box = tk.Toplevel(main_frame)
+    username_dialog_box.title("username")
+    username_dialog_box.geometry("250x100")
+    username_dialog_box.resizable(False, False)
+    
+    label = tk.Label(username_dialog_box, text="Enter the username: ")
+    entry = tk.Entry(username_dialog_box)
+    button= tk.Button(username_dialog_box, text="OK", command=lambda:on_click_OK_for_username(entry,username_dialog_box) )
+
+    label.pack()
+    button.pack(side="right", padx=10)
+    entry.pack()
+        
+   # password_dialog_box.grab_set()
+    username_dialog_box.focus_set()
+    entry.focus_set()
+    
+# for security purpose 
+    main_frame.wait_window(username_dialog_box)
+
+    print("Got username b: ", username)
+
+   
+    return username
 
 
 def send_msg_single(main_frame, term_btn, username, password):
@@ -167,14 +209,14 @@ def options_for_single_host(image_dict, main_frame, term_btn, username, password
 
 
 
-main_frame = tk.Tk()
-main_frame.geometry("500x500")
-
-button  = tk.Button(main_frame, text="get dialog", command=lambda : options_for_single_host(main_frame))
-button.pack()
-
-
-main_frame.mainloop()
+# main_frame = tk.Tk()
+# main_frame.geometry("500x500")
+# 
+# button  = tk.Button(main_frame, text="get dialog", command=lambda : options_for_single_host(main_frame))
+# button.pack()
+# 
+# 
+# main_frame.mainloop()
 
 #password =  get_password(main_frame)
 

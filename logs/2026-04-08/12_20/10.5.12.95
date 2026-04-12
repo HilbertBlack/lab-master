@@ -1,0 +1,60 @@
+CMD_EXECUTED = sudo apt-get install micro -y
+123456
+[sudo] password for cs: 
+E: dpkg was interrupted, you must manually run 'sudo dpkg --configure -a' to correct the problem. 
+EXIT_CODE: 100
+CMD_EXECUTED = sudo apt-get install micro -y
+123456
+[sudo] password for cs: 
+E: dpkg was interrupted, you must manually run 'sudo dpkg --configure -a' to correct the problem. 
+EXIT_CODE: 100
+CMD_EXECUTED = sudo apt-get install -f
+123456
+[sudo] password for cs: 
+E: dpkg was interrupted, you must manually run 'sudo dpkg --configure -a' to correct the problem. 
+EXIT_CODE: 100
+CMD_EXECUTED = sudo dpkg --configure -a
+123456
+[sudo] password for cs: 
+Setting up code (1.114.0-1775036290) ...
+Processing triggers for gnome-menus (3.36.0-1ubuntu3) ...
+Processing triggers for shared-mime-info (2.1-2) ...
+Processing triggers for mailcap (3.70+nmu1ubuntu1) ...
+Processing triggers for desktop-file-utils (0.26-1ubuntu3) ...
+EXIT_CODE: 0
+CMD_EXECUTED = sudo apt-get install micro -y
+123456
+[sudo] password for cs: 
+Reading package lists... 0%Reading package lists... 0%Reading package lists... 7%Reading package lists... Done
+Building dependency tree... 0%Building dependency tree... 0%Building dependency tree... 50%Building dependency tree... 50%Building dependency tree... 81%Building dependency tree... Done
+Reading state information... 0% Reading state information... 0%Reading state information... Done
+The following packages were automatically installed and are no longer required:
+  libaacs0 libaom3 libass9 libavcodec58 libavformat58 libavutil56 libbdplus0
+  libblas3 libbluray2 libbs2b0 libchromaprint1 libcodec2-1.0 libdav1d5
+  libflite1 libgme0 libgsm1 liblilv-0-0 libmfx1 libmysofa1 libnorm1
+  libopenmpt0 libpgm-5.3-0 librabbitmq4 libserd-0-0 libshine3 libsord-0-0
+  libsratom-0-0 libsrt1.4-gnutls libswresample3 libudfread0 libvdpau1
+  libx265-199 libxvidcore4 libzmq5 libzvbi-common libzvbi0 mesa-vdpau-drivers
+  vdpau-driver-all
+Use 'sudo apt autoremove' to remove them.
+The following additional packages will be installed:
+  xclip
+The following NEW packages will be installed:
+  micro xclip
+0 upgraded, 2 newly installed, 0 to remove and 127 not upgraded.
+Need to get 4,110 kB of archives.
+After this operation, 12.2 MB of additional disk space will be used.
+0% [Working]0% [Waiting for headers]                        Get:1 http://in.archive.ubuntu.com/ubuntu jammy-updates/universe amd64 micro amd64 2.0.9-1ubuntu0.22.04.3 [4,092 kB]
+0% [1 micro 14.2 kB/4,092 kB 0%]1% [1 micro 43.1 kB/4,092 kB 1%]                                3% [1 micro 140 kB/4,092 kB 3%]9% [1 micro 451 kB/4,092 kB 11%]30% [1 micro 1,559 kB/4,092 kB 38%]                                   90% [Working]             Get:2 http://in.archive.ubuntu.com/ubuntu jammy/universe amd64 xclip amd64 0.13-2 [18.3 kB]
+90% [2 xclip 18.3 kB/18.3 kB 100%]                                  100% [Working]              Fetched 4,110 kB in 3s (1,223 kB/s)
+Selecting previously unselected package micro.
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 228820 files and directories currently installed.)
+Preparing to unpack .../micro_2.0.9-1ubuntu0.22.04.3_amd64.deb ...
+Unpacking micro (2.0.9-1ubuntu0.22.04.3) ...
+Selecting previously unselected package xclip.
+Preparing to unpack .../xclip_0.13-2_amd64.deb ...
+Unpacking xclip (0.13-2) ...
+Setting up micro (2.0.9-1ubuntu0.22.04.3) ...
+Setting up xclip (0.13-2) ...
+Processing triggers for man-db (2.10.2-1) ...
+EXIT_CODE: 0
