@@ -1,5 +1,6 @@
 import tkinter as tk
 import remote_connection
+import shell_process
 
 password=""
 username=""
@@ -187,6 +188,7 @@ def options_for_single_host(image_dict, main_frame, term_btn, username, password
     cmd_btn   = tk.Button(single_host_box, text="CMD")
     lock_btn  = tk.Button(single_host_box, text="Lock", command=lambda:lock_screen_single(main_frame, term_btn, username, password))
     shut_down_btn=tk.Button(single_host_box,text="Shutdown", command=lambda:shut_down_single(main_frame, term_btn, username, password))
+    spawn_term   = tk.Button(single_host_box, text="spawn_term", command= lambda:shell_process.spawn_terminal_session_with_ssh(username, term_btn.ip_address))
     
     label.pack(side="top")
     cmd_entry.pack(side="top")
@@ -194,8 +196,10 @@ def options_for_single_host(image_dict, main_frame, term_btn, username, password
     msg_btn.pack(side="top")
     lock_btn.pack(side="top")
     shut_down_btn.pack(side="top")
+    spawn_term.pack(side="top")
     button.pack(side="top")
-        
+
+    
    # password_dialog_box.grab_set()
     single_host_box.focus_set()
     

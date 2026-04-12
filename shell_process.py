@@ -46,3 +46,20 @@ def run_cmd(cmd, cmd_input=""):
     # print(line, end="")
 
     process.wait()
+
+
+
+def spawn_terminal_session_with_ssh(username, ip_address):
+
+    subprocess.Popen(
+        [
+            "gnome-terminal",
+            "--",
+            "bash",
+            "-c",
+            f"ssh {username}@{ip_address};exec bash"    
+        ]
+    )
+
+
+#spawn_terminal_sessions_with_ssh("manikandan", "127.0.0.1")
