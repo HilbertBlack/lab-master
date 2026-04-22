@@ -94,6 +94,8 @@ LOCK_ICON    = tk.PhotoImage(file="./images/lock.png").subsample(12)
 SHUTDOWN_ICON= tk.PhotoImage(file="./images/shutdown.png").subsample(12)
 RUN_ICON     = tk.PhotoImage(file="./images/run.png").subsample(14)
 COPY_ICON    = tk.PhotoImage(file="./images/clip_board.png").subsample(14)
+DOWNLOAD_ICON= tk.PhotoImage(file="./images/download.png").subsample(14)
+REFRESH_ICON=tk.PhotoImage(file="./images/refresh.png").subsample(12)
 
 UNLOCK_USER_ICON  = tk.PhotoImage(file="./images/unlock_user.png").subsample(12)
 LOCK_USER_ICON    = tk.PhotoImage(file="./images/lock_user.png").subsample(12)
@@ -334,6 +336,8 @@ def get_initial_data(client):
 
     else:
         print("-------- obtained initial data failed ----------")
+        return [-1], -1
+        
     return list_of_users, hostname
     
 def connect_all(list_of_ips, common_username, common_password):
@@ -469,6 +473,38 @@ def run_cmd_all(list_of_clients, cmd, username, password, isSUDO):
         
     return list_of_lists
 
+
+
+def refresh_data():
+    global array_of_term_btns
+
+    reset_color_all_term_btns(YELLOW_ICON)
+    
+    for t_btn in array_of_term_btns:
+
+        if (t_btn.conn_status != "alive"):
+            continue
+
+        list_of_users, hostname = get_initial_data(t_btn.client)
+
+        if (hostname == -1 or list_of_users[0] == -1):
+            print("print getting intial data for ", t_btn.ip_address, "failed")
+            return "NOT found or connection failed"
+
+        print("{ list users }")
+        print(list_of_users)
+
+        set_term_btn_hostname(t_btn.ip_address , hostname)
+        set_term_btn_users(t_btn.ip_address, list_of_users)
+        
+        connected_ips_list.add(t_btn.ip_address)
+        missing_ips_list.discard(t_btn.ip_address)
+
+        change_term_btn_icon(t_btn.ip_address, GREEN_ICON)
+
+    return 0
+        
+
 def connect_default(cmd):
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -519,7 +555,9 @@ def copy_all():
     if(src_file_path.get() == "" or des_file_path.get() == ""):
         print("File not specified")
         return -1 
-        
+
+    reset_color_all_term_btns(YELLOW_ICON)
+    
     for client in list_of_clients:
         ip_address = client.get_transport().getpeername()[0]
         copy_result = remote_connection.copy_file(client, src_file_path.get(), des_file_path.get())
@@ -529,7 +567,29 @@ def copy_all():
         elif ( copy_result == 0):
             change_term_btn_icon(ip_address, GREEN_ICON)
     return 0
+
+def download_all():
+    global list_of_clients, src_file_path, des_file_path
+
+    if(src_file_path.get() == "" or des_file_path.get() == ""):
+        print("File not specified")
+        return -1 
+
+    src_file_name = os.path.basename(src_file_path.get())
+
+    reset_color_all_term_btns(YELLOW_ICON)
     
+    for client in list_of_clients:
+        ip_address = client.get_transport().getpeername()[0]
+        download_result = remote_connection.download_file(client, src_file_path.get(), f"./pulls/{current_date}/{current_time}/{ip_address}/{src_file_name}")
+        if ( download_result == -1 ):
+            change_term_btn_icon(ip_address,  RED_ICON)
+
+        elif ( download_result == 0):
+            change_term_btn_icon(ip_address, GREEN_ICON)
+    return 0
+
+
 
 def lock_user():
     global list_of_clients
@@ -685,12 +745,14 @@ def initialize(main_frame):
                                                                                     isSUDO.get()
                                                                                 ))
     copy_btn    = tk.Button(copy_Frame, text = "Copy", command = copy_all)
+    download_btn= tk.Button(copy_Frame, text = "Download", command = download_all)
     msg_btn     = tk.Button(info_frame, text = "Msg", command = send_msg_all)
     lock_btn    = tk.Button(info_frame, text = "Lock",command = lock_sessions_all)
     shut_down_btn =tk.Button(info_frame, text = "Shut Down", command = shut_down_all)
     lock_usr_btn  =tk.Button(info_frame, text = "lock user", command =  lock_user )
     unlock_usr_btn=tk.Button(info_frame, text = "unlock user", command= unlock_user)
-
+    refresh_btn   =tk.Button(info_frame, text = "refresh", command= refresh_data)
+    
     src_browse_btn = tk.Button(copy_Frame, text="src", command = get_src_file_path)
     des_browse_btn = tk.Button(copy_Frame, text="des", command = get_des_file_path)
 
@@ -698,18 +760,22 @@ def initialize(main_frame):
     lock_btn.config(image= LOCK_ICON)
     shut_down_btn.config(image=SHUTDOWN_ICON)
     copy_btn.config(image=COPY_ICON)
+    download_btn.config(image=DOWNLOAD_ICON)
     cmd_btn.config(image =RUN_ICON)
     lock_usr_btn.config(image=LOCK_USER_ICON)
     unlock_usr_btn.config(image=UNLOCK_USER_ICON)
+    refresh_btn.config(image=REFRESH_ICON)
 
     msg_btn.image       = MESSAGE_ICON
     lock_btn.image      = LOCK_ICON
     shut_down_btn.image = SHUTDOWN_ICON
     copy_btn.image      = COPY_ICON
+    download_btn.image  = DOWNLOAD_ICON
     cmd_btn.image       = RUN_ICON
     lock_usr_btn.image  = LOCK_USER_ICON
     unlock_usr_btn.image= UNLOCK_USER_ICON
-
+    refresh_btn.image   = REFRESH_ICON
+    
     # list_of_elements = [
     # username_label, username_entry, password_label, password_entry, connect_btn, sep_u_r,
                 # cmd_entry, isSUDO_check_box, cmd_btn, sep_r_i,
@@ -726,12 +792,12 @@ def initialize(main_frame):
     #y_position = cmd_entry.winfo_height()
     #print("y_position: ", y_position)
 
-    rearrange.basic_frame_h_pack(info_frame,     [isSUDO_check_box, cmd_btn, msg_btn, lock_btn, unlock_usr_btn, lock_usr_btn,  shut_down_btn])
+    rearrange.basic_frame_h_pack(info_frame,     [isSUDO_check_box, cmd_btn, msg_btn, lock_btn, unlock_usr_btn, lock_usr_btn,  shut_down_btn, refresh_btn])
 
 
     rearrange.basic_frame_v_pack(connection_frame, [username_label, username_entry, password_label, password_entry, connect_btn])
     rearrange.basic_frame_v_pack(command_frame,    [cmd_entry, info_frame ])
-    rearrange.basic_frame_hv_pack(copy_Frame,      [[src_browse_btn, src_file_label], [des_browse_btn, des_file_label], [copy_btn]])
+    rearrange.basic_frame_hv_pack(copy_Frame,      [[src_browse_btn, src_file_label], [des_browse_btn, des_file_label], [copy_btn, download_btn]])
     rearrange.basic_frame_v_pack(other_Frame,      [short_form_btn, help_btn, exit_btn])
     
     connection_frame.pack(side="left",anchor="n")

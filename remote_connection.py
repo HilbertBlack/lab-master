@@ -1,5 +1,6 @@
 import paramiko 
 import traceback
+from pathlib import Path
 #
 # this funciton for running the non sudo command
 #
@@ -49,6 +50,56 @@ def copy_file(client, src_file_path, des_file_path):
         return -1
     print("finished copying")
     return 0 
+
+
+def copy_file(client, src_file_path, des_file_path):
+
+
+    try:
+        ## opening sftp channel
+        sftp_channel = client.open_sftp()
+        attributes   = sftp_channel.put(src_file_path, des_file_path)
+        sftp_channel.close()
+
+    except Exception as e:
+        print("File upload \033[31mFAILED\033[0m")
+        print("Exception:". repr(e))
+        traceback.print_exc()
+
+def download_file(client, src_file_path, des_file_path):
+
+    des = ""
+    try:
+        des = Path(des_file_path)
+
+        des.parent.mkdir(parents=True, exist_ok=True)
+        
+    except Exception as e:
+        print("<<<<<<< Directory creation failed >>>>>>>>")
+        print("Exception:", repr(e))
+        traceback.print_exc()
+        return -1
+        
+    try:
+        
+        ## opening sftp channel
+        sftp_channel = client.open_sftp()
+        attributes   = sftp_channel.get(src_file_path, des_file_path)
+        sftp_channel.close()
+
+        print("file creation successful")
+        
+        return 0
+        
+    except Exception as e:
+        print("File download \033[31mFAILED\033[0m")
+        print("Exception:", repr(e))
+        traceback.print_exc()
+
+        if des.exists():
+            des.unlink()
+            
+    return -1
 # # creating a client instance
 # client = paramiko.SSHClient()
 # 
