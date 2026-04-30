@@ -27,8 +27,8 @@ config.read("./config.ini")
 
 
 
-common_user = "gokul"
-common_pass = "Gokul@333"
+common_user = "manikandan"
+common_pass = "169225"
 
 isSUDO = None
 isSTFM = 0
@@ -92,13 +92,15 @@ RED_CROSS_ICON = tk.PhotoImage(file="./images/redCross.png").subsample(5)
 MESSAGE_ICON = tk.PhotoImage(file="./images/message.png").subsample(12)
 LOCK_ICON    = tk.PhotoImage(file="./images/lock.png").subsample(12)
 SHUTDOWN_ICON= tk.PhotoImage(file="./images/shutdown.png").subsample(12)
-RUN_ICON     = tk.PhotoImage(file="./images/run.png").subsample(14)
+RUN_ICON     = tk.PhotoImage(file="./images/play.png").subsample(11)
 COPY_ICON    = tk.PhotoImage(file="./images/clip_board.png").subsample(14)
 DOWNLOAD_ICON= tk.PhotoImage(file="./images/download.png").subsample(14)
 REFRESH_ICON=tk.PhotoImage(file="./images/refresh.png").subsample(12)
 
 UNLOCK_USER_ICON  = tk.PhotoImage(file="./images/unlock_user.png").subsample(12)
 LOCK_USER_ICON    = tk.PhotoImage(file="./images/lock_user.png").subsample(12)
+CHANGE_PASSWD_ICON= tk.PhotoImage(file="./images/change_password.png").subsample(12)
+
 
 image_dict = { "MESSAGE_ICON": MESSAGE_ICON, "LOCK_ICON": LOCK_ICON, "SHUTDOWN_ICON": SHUTDOWN_ICON}
 
@@ -506,6 +508,7 @@ def refresh_data():
         
 
 def connect_default(cmd):
+
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     client.connect(hostname = "10.198.122.106", username = "machine", password = "machine@123", port = 22)
@@ -560,11 +563,15 @@ def copy_all():
     
     for client in list_of_clients:
         ip_address = client.get_transport().getpeername()[0]
+        print("------- COPY OPERATION ------")
+        print("{", ip_address ," }")
         copy_result = remote_connection.copy_file(client, src_file_path.get(), des_file_path.get())
         if ( copy_result == -1 ):
+            print("SUCCESS")
             change_term_btn_icon(ip_address,  RED_ICON)
 
         elif ( copy_result == 0):
+            print("FAILURE")
             change_term_btn_icon(ip_address, GREEN_ICON)
     return 0
 
@@ -629,6 +636,24 @@ def shut_down_all():
     print("the LOCK cmd = ", shutdown_cmd)
 
     run_cmd_all(list_of_clients, lock_cmd, username_entry.get(), password_entry.get(), isSUDO=True)
+
+def change_passwd_all():
+        # This function change the passwd for the list of users
+        # For to change the passwd the ssh connect user must be
+        # a root or high level user(sudo) than the list users
+
+    global list_of_clients, main_frame
+
+    list_of_new_users =  get_password.get_new_passwd(main_frame)
+    print(list_of_new_users)
+
+    change_passwd_cmd = config.get("system_cmd", "CHANGE_PASSWD")
+
+
+
+    for new_user in list_of_new_users:
+        run_cmd_all(list_of_clients, )
+        
 
 def get_credentials():
 
@@ -700,6 +725,7 @@ def initialize(main_frame):
     connection_frame = tk.Frame(ctrl_screen)
     command_frame    = tk.Frame(ctrl_screen)
     info_frame       = tk.Frame(command_frame)
+    user_frame       = tk.Frame(command_frame)
     copy_Frame       = tk.Frame(ctrl_screen)
     other_Frame      = tk.Frame(ctrl_screen)
         
@@ -736,7 +762,11 @@ def initialize(main_frame):
     # connect_btn = tk.Button(ctrl_screen, text = "Connect", command = connect_default)
 
     isSUDO = tk.BooleanVar()
+    isDISP = tk.BooleanVar()
+    
     isSUDO_check_box = tk.Checkbutton(info_frame, text="is SUDO", command=lambda: print_SUDO_status(isSUDO) , variable = isSUDO)
+    isDISP_check_box = tk.Checkbutton(user_frame, text="is DISP  " , variable = isDISP)
+
     cmd_btn     = tk.Button(info_frame, text = "CMD", command=lambda: run_cmd_all(
                                                                                     list_of_clients, 
                                                                                     cmd_entry.get().strip(),
@@ -749,9 +779,11 @@ def initialize(main_frame):
     msg_btn     = tk.Button(info_frame, text = "Msg", command = send_msg_all)
     lock_btn    = tk.Button(info_frame, text = "Lock",command = lock_sessions_all)
     shut_down_btn =tk.Button(info_frame, text = "Shut Down", command = shut_down_all)
-    lock_usr_btn  =tk.Button(info_frame, text = "lock user", command =  lock_user )
-    unlock_usr_btn=tk.Button(info_frame, text = "unlock user", command= unlock_user)
     refresh_btn   =tk.Button(info_frame, text = "refresh", command= refresh_data)
+
+    lock_usr_btn  =tk.Button(user_frame, text = "lock user", command =  lock_user )
+    unlock_usr_btn=tk.Button(user_frame, text = "unlock user", command= unlock_user)
+    change_passwd_btn=tk.Button(user_frame, text="change password", command = change_passwd_all)
     
     src_browse_btn = tk.Button(copy_Frame, text="src", command = get_src_file_path)
     des_browse_btn = tk.Button(copy_Frame, text="des", command = get_des_file_path)
@@ -764,17 +796,20 @@ def initialize(main_frame):
     cmd_btn.config(image =RUN_ICON)
     lock_usr_btn.config(image=LOCK_USER_ICON)
     unlock_usr_btn.config(image=UNLOCK_USER_ICON)
+    change_passwd_btn.config(image=CHANGE_PASSWD_ICON)
     refresh_btn.config(image=REFRESH_ICON)
 
-    msg_btn.image       = MESSAGE_ICON
-    lock_btn.image      = LOCK_ICON
-    shut_down_btn.image = SHUTDOWN_ICON
-    copy_btn.image      = COPY_ICON
-    download_btn.image  = DOWNLOAD_ICON
-    cmd_btn.image       = RUN_ICON
-    lock_usr_btn.image  = LOCK_USER_ICON
-    unlock_usr_btn.image= UNLOCK_USER_ICON
-    refresh_btn.image   = REFRESH_ICON
+    msg_btn.image           = MESSAGE_ICON
+    lock_btn.image          = LOCK_ICON
+    shut_down_btn.image     = SHUTDOWN_ICON
+    copy_btn.image          = COPY_ICON
+    download_btn.image      = DOWNLOAD_ICON
+    cmd_btn.image           = RUN_ICON
+    lock_usr_btn.image      = LOCK_USER_ICON
+    unlock_usr_btn.image    = UNLOCK_USER_ICON
+    change_passwd_btn.image = CHANGE_PASSWD_ICON
+    refresh_btn.image       = REFRESH_ICON
+    
     
     # list_of_elements = [
     # username_label, username_entry, password_label, password_entry, connect_btn, sep_u_r,
@@ -792,11 +827,12 @@ def initialize(main_frame):
     #y_position = cmd_entry.winfo_height()
     #print("y_position: ", y_position)
 
-    rearrange.basic_frame_h_pack(info_frame,     [isSUDO_check_box, cmd_btn, msg_btn, lock_btn, unlock_usr_btn, lock_usr_btn,  shut_down_btn, refresh_btn])
-
+    
+    rearrange.basic_frame_h_pack(info_frame,     [isSUDO_check_box, cmd_btn, msg_btn, lock_btn, shut_down_btn, refresh_btn])
+    rearrange.basic_frame_h_pack(user_frame,     [isDISP_check_box, unlock_usr_btn, lock_usr_btn, change_passwd_btn])
 
     rearrange.basic_frame_v_pack(connection_frame, [username_label, username_entry, password_label, password_entry, connect_btn])
-    rearrange.basic_frame_v_pack(command_frame,    [cmd_entry, info_frame ])
+    rearrange.basic_frame_v_pack(command_frame,    [cmd_entry, info_frame, user_frame ])
     rearrange.basic_frame_hv_pack(copy_Frame,      [[src_browse_btn, src_file_label], [des_browse_btn, des_file_label], [copy_btn, download_btn]])
     rearrange.basic_frame_v_pack(other_Frame,      [short_form_btn, help_btn, exit_btn])
     

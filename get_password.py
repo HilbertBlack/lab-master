@@ -7,6 +7,11 @@ password=""
 username=""
 
 
+no_of_users=0
+list_of_new_users = []
+# OPEN_EYE = tk.PhotoImage(file="./images/open_eye.png")
+
+
 config = configparser.ConfigParser()
 config.read("./config.ini")
 
@@ -133,6 +138,137 @@ def get_username(main_frame):
    
     return username
 
+# get the username and the new password from the administator and 
+# display it in the window with a + button to add more buttons
+# added new users flag variables will be incremented
+
+def see_unsee_passwd(entry):
+
+    show_config = entry.cget("show")
+    if (show_config == "*"):
+        entry.config(show="")
+    else:
+        entry.config(show="*")
+
+def add_small_window(main_frame):
+
+    # upon creating a small windows 
+    # it returns username, pass1, pass2 , error
+    # elements within that small window 
+
+    global no_of_users
+    
+    small_frame = tk.Frame(main_frame)
+
+    error_label    = tk.Label(small_frame, text="wrong!!! check password", fg="red")
+    username_label = tk.Label(small_frame, text="Username:")
+    username_entry = tk.Entry(small_frame)
+
+    passwd_label_1 = tk.Label(small_frame,text="New password:")
+    d_frame_1      = tk.Frame(small_frame)
+    passwd_entry_1 = tk.Entry(d_frame_1, show="*")
+    eye_btn_1      = tk.Button(d_frame_1,text="e1", command=lambda: see_unsee_passwd(passwd_entry_1))
+
+    passwd_label_2 = tk.Label(small_frame,text="Retype password:")
+    d_frame_2      = tk.Frame(small_frame)
+    passwd_entry_2 = tk.Entry(d_frame_2, show="*")
+    eye_btn_2      = tk.Button(d_frame_2,text="e2", command=lambda: see_unsee_passwd(passwd_entry_2))
+
+
+    username_label.pack(side="top")
+    username_entry.pack(side="top")
+    error_label.pack(side="top") ; error_label.pack_forget()
+    passwd_label_1.pack(side="top") 
+    d_frame_1.pack(side="top")    
+    passwd_entry_1.pack(side="left"); eye_btn_1.pack(side="left")
+    passwd_label_2.pack(side="top")
+    d_frame_2.pack(side="top")
+    passwd_entry_2.pack(side="left"); eye_btn_2.pack(side="left")
+
+    separator_line = tk.Frame(small_frame, height=2, bg="black", pady=2)
+    separator_line.pack(side="top", fill="x")
+    
+    small_frame.pack(side="top", padx=10)
+
+    no_of_users = no_of_users + 1
+    print("a new frame is added || users:", no_of_users)
+
+# attaching all the elements to the frame
+
+    return [username_entry, passwd_entry_1, passwd_entry_2, error_label]
+
+def on_click_OK_for_change_passwd(holding_frame, list_of_small_window):
+
+    # first check "new password" and "retype password" are same
+    print("no of users ", len(list_of_small_window))
+    global list_of_new_users
+    isAll_correct = 1
+    
+    for small_frame in list_of_small_window:
+        if (small_frame[0].get().strip() == ""):
+            print("empty username field")
+        
+        if(small_frame[1].get() == small_frame[2].get()):
+            print("correct password for ", small_frame[0].get())
+            small_frame[3].pack_forget()
+        else:
+            print("wrong password for ", small_frame[0].get())
+            small_frame[3].pack(before=small_frame[0])
+            isAll_correct = 0
+
+    if (isAll_correct == 1):
+        print("all are correct")
+
+        list_of_new_users = []
+        
+        for small_frame in list_of_small_window:            
+            list_of_new_users.append([small_frame[0].get(), small_frame[1].get()])    
+
+        holding_frame.destroy()
+
+        return list_of_new_users
+        
+    else:
+        print("password are wrong for few users")
+    
+def get_new_passwd(main_frame):
+    # This function returns a list [n, [username, password], [username, password], ...]
+    # also manages it UI by it small function names add_small_window
+    # the starting count to 1 upon running for one time initialy
+    
+    global no_of_users, list_of_new_users
+
+    list_of_small_window = []
+    list_of_new_users    = []
+
+    no_of_users = 0
+    
+    username_new_passwd_box = tk.Toplevel(main_frame)
+    username_new_passwd_box.title("change password")
+    username_new_passwd_box.resizable(False, False)
+
+
+    base      = tk.Frame(username_new_passwd_box, bg="grey")
+    add_btn   = tk.Button(base, text="+", command=lambda : list_of_small_window.append( add_small_window(username_new_passwd_box) )  )
+    create_btn= tk.Button(base, text="change", command=lambda: on_click_OK_for_change_passwd(username_new_passwd_box,   list_of_small_window))
+
+    base.pack(side="bottom", fill="x")
+    add_btn.pack(side="left")
+    create_btn.pack(side="right")
+
+# running this to get the first prompt 
+
+    list_of_small_window.append( add_small_window(username_new_passwd_box) )
+
+    username_new_passwd_box.focus_set()
+    main_frame.wait_window(username_new_passwd_box)
+
+# this segement will run then 
+# list of new users in the format of
+# [ [name, passwd], [name,passwd], [...] ]
+
+    return list_of_new_users
+
 
 def send_msg_single(main_frame, term_btn, username, password):
 
@@ -174,7 +310,6 @@ def shut_down_single(main_frame, term_btn, username, password):
 
 
 def on_click_OK_single_host(option, holding_frame):
-
 
     print("This is the output", option)
      

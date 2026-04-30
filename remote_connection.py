@@ -52,19 +52,19 @@ def copy_file(client, src_file_path, des_file_path):
     return 0 
 
 
-def copy_file(client, src_file_path, des_file_path):
-
-
-    try:
-        ## opening sftp channel
-        sftp_channel = client.open_sftp()
-        attributes   = sftp_channel.put(src_file_path, des_file_path)
-        sftp_channel.close()
-
-    except Exception as e:
-        print("File upload \033[31mFAILED\033[0m")
-        print("Exception:". repr(e))
-        traceback.print_exc()
+# def copy_file(client, src_file_path, des_file_path):
+# 
+# 
+#     try:
+#         ## opening sftp channel
+#         sftp_channel = client.open_sftp()
+#         attributes   = sftp_channel.put(src_file_path, des_file_path)
+#         sftp_channel.close()
+# 
+#     except Exception as e:
+#         print("File upload \033[31mFAILED\033[0m")
+#         print("Exception:". repr(e))
+#         traceback.print_exc()
 
 def download_file(client, src_file_path, des_file_path):
 
