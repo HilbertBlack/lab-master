@@ -1,5 +1,6 @@
 import paramiko 
 import traceback
+import time
 from pathlib import Path
 #
 # this funciton for running the non sudo command
@@ -30,6 +31,41 @@ def run_sudo_cmd(client, cmd, username, password):
     
     return [stdin, stdout, stderr]        
 
+
+
+def run_cmd_inputs(client, cmd, inputs):
+
+    print ("running cmd :", cmd)
+
+    stdin, stdout, stderr = client.exec_command(cmd, get_pty=True)
+
+    for element in inputs:
+        print("Giving input :", element)
+        stdin.write(element)
+
+    stdin.write("\n")
+    stdin.flush()
+
+    return  [stdin, stdout, stderr]
+    
+def run_sudo_cmd_inputs(client, cmd, username, password, inputs):
+
+    print ("running sudo cmd :", cmd)
+
+    stdin, stdout, stderr = client.exec_command(cmd, get_pty=True)
+    time.sleep(1)
+    stdin.write(password + '\n')
+    
+    print("password given")
+    for element in inputs:
+        time.sleep(1)
+        print("Giving input :", element)
+        stdin.write(element)
+        
+    stdin.flush()
+
+    return  [stdin, stdout, stderr]
+    
 
 def copy_file(client, src_file_path, des_file_path):
 

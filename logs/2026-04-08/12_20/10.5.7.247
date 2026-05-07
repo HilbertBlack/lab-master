@@ -1,69 +1,0 @@
-CMD_EXECUTED = sudo apt-get install micro -y
-123456
-[sudo] password for cs: 
-Reading package lists... 0%Reading package lists... 100%Reading package lists... Done
-Building dependency tree... 0%Building dependency tree... 0%Building dependency tree... 50%Building dependency tree... 50%Building dependency tree... Done
-Reading state information... 0% Reading state information... 0%Reading state information... Done
-The following packages were automatically installed and are no longer required:
-  libwpe-1.0-1 libwpebackend-fdo-1.0-1
-Use 'sudo apt autoremove' to remove them.
-The following additional packages will be installed:
-  xclip
-The following NEW packages will be installed:
-  micro xclip
-0 upgraded, 2 newly installed, 0 to remove and 42 not upgraded.
-Need to get 4,110 kB of archives.
-After this operation, 12.2 MB of additional disk space will be used.
-0% [Working]            Get:1 http://in.archive.ubuntu.com/ubuntu jammy-updates/universe amd64 micro amd64 2.0.9-1ubuntu0.22.04.3 [4,092 kB]
-0% [1 micro 14.2 kB/4,092 kB 0%]2% [1 micro 82.2 kB/4,092 kB 2%]10% [1 micro 491 kB/4,092 kB 12%]64% [1 micro 3,272 kB/4,092 kB 80%]                                   90% [Working]             Get:2 http://in.archive.ubuntu.com/ubuntu jammy/universe amd64 xclip amd64 0.13-2 [18.3 kB]
-90% [2 xclip 15.6 kB/18.3 kB 86%]                                 100% [Working]              Fetched 4,110 kB in 2s (1,867 kB/s)
-Selecting previously unselected package micro.
-(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 343428 files and directories currently installed.)
-Preparing to unpack .../micro_2.0.9-1ubuntu0.22.04.3_amd64.deb ...
-Unpacking micro (2.0.9-1ubuntu0.22.04.3) ...
-Selecting previously unselected package xclip.
-Preparing to unpack .../xclip_0.13-2_amd64.deb ...
-Unpacking xclip (0.13-2) ...
-Setting up micro (2.0.9-1ubuntu0.22.04.3) ...
-Setting up xclip (0.13-2) ...
-Processing triggers for man-db (2.10.2-1) ...
-EXIT_CODE: 0
-CMD_EXECUTED = sudo apt-get install micro -y
-123456
-[sudo] password for cs: 
-Reading package lists... 0%Reading package lists... 100%Reading package lists... Done
-Building dependency tree... 0%Building dependency tree... 0%Building dependency tree... 50%Building dependency tree... 50%Building dependency tree... Done
-Reading state information... 0% Reading state information... 0%Reading state information... Done
-micro is already the newest version (2.0.9-1ubuntu0.22.04.3).
-The following packages were automatically installed and are no longer required:
-  libwpe-1.0-1 libwpebackend-fdo-1.0-1
-Use 'sudo apt autoremove' to remove them.
-0 upgraded, 0 newly installed, 0 to remove and 42 not upgraded.
-EXIT_CODE: 0
-CMD_EXECUTED = sudo apt-get install -f
-123456
-[sudo] password for cs: 
-Reading package lists... 0%Reading package lists... 100%Reading package lists... Done
-Building dependency tree... 0%Building dependency tree... 0%Building dependency tree... 50%Building dependency tree... 50%Building dependency tree... Done
-Reading state information... 0% Reading state information... 0%Reading state information... Done
-The following packages were automatically installed and are no longer required:
-  libwpe-1.0-1 libwpebackend-fdo-1.0-1
-Use 'sudo apt autoremove' to remove them.
-0 upgraded, 0 newly installed, 0 to remove and 42 not upgraded.
-EXIT_CODE: 0
-CMD_EXECUTED = sudo dpkg --configure -a
-123456
-[sudo] password for cs: 
-EXIT_CODE: 0
-CMD_EXECUTED = sudo apt-get install micro -y
-123456
-[sudo] password for cs: 
-Reading package lists... 0%Reading package lists... 100%Reading package lists... Done
-Building dependency tree... 0%Building dependency tree... 0%Building dependency tree... 50%Building dependency tree... 50%Building dependency tree... Done
-Reading state information... 0% Reading state information... 0%Reading state information... Done
-micro is already the newest version (2.0.9-1ubuntu0.22.04.3).
-The following packages were automatically installed and are no longer required:
-  libwpe-1.0-1 libwpebackend-fdo-1.0-1
-Use 'sudo apt autoremove' to remove them.
-0 upgraded, 0 newly installed, 0 to remove and 42 not upgraded.
-EXIT_CODE: 0

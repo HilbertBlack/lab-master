@@ -9,6 +9,7 @@ username=""
 
 no_of_users=0
 list_of_new_users = []
+list_of_old_users = []
 # OPEN_EYE = tk.PhotoImage(file="./images/open_eye.png")
 
 
@@ -150,7 +151,7 @@ def see_unsee_passwd(entry):
     else:
         entry.config(show="*")
 
-def add_small_window(main_frame):
+def add_small_window_for_change_passwd(main_frame):
 
     # upon creating a small windows 
     # it returns username, pass1, pass2 , error
@@ -249,7 +250,7 @@ def get_new_passwd(main_frame):
 
 
     base      = tk.Frame(username_new_passwd_box, bg="grey")
-    add_btn   = tk.Button(base, text="+", command=lambda : list_of_small_window.append( add_small_window(username_new_passwd_box) )  )
+    add_btn   = tk.Button(base, text="+", command=lambda : list_of_small_window.append( add_small_window_for_change_passwd(username_new_passwd_box) )  )
     create_btn= tk.Button(base, text="change", command=lambda: on_click_OK_for_change_passwd(username_new_passwd_box,   list_of_small_window))
 
     base.pack(side="bottom", fill="x")
@@ -258,7 +259,7 @@ def get_new_passwd(main_frame):
 
 # running this to get the first prompt 
 
-    list_of_small_window.append( add_small_window(username_new_passwd_box) )
+    list_of_small_window.append( add_small_window_for_change_passwd(username_new_passwd_box) )
 
     username_new_passwd_box.focus_set()
     main_frame.wait_window(username_new_passwd_box)
@@ -268,6 +269,99 @@ def get_new_passwd(main_frame):
 # [ [name, passwd], [name,passwd], [...] ]
 
     return list_of_new_users
+
+
+# -----------------------------------------------------------------
+
+# This function is to get username from the admin
+# for the deteing the users. only the username is need 
+# if the username is wrong we get need to prevent other users deletion
+
+
+def get_old_users(main_frame):
+   
+    
+    list_of_small_window = []
+    global list_of_old_users
+
+    no_of_old_users = 0
+    
+    username_box = tk.Toplevel(main_frame)
+    username_box.title("change password")
+    username_box.resizable(False, False)
+
+
+    base      = tk.Frame(username_box, bg="grey")
+    add_btn   = tk.Button(base, text="+" , command = lambda: list_of_small_window.append( add_small_window_for_user_del(username_box) ))
+    del_btn   = tk.Button(base, text="delete", command = lambda: on_click_OK_for_user_del(username_box ,list_of_small_window) )
+
+    base.pack(side="bottom", fill="x")
+    add_btn.pack(side="left")
+    del_btn.pack(side="right")
+
+# running this to get the first prompt 
+
+    username_box.focus_set()
+    main_frame.wait_window(username_box)
+
+# this segement will run then 
+# list of new users in the format of
+# [username1, username2, ... ]
+
+    return list_of_old_users
+
+
+def add_small_window_for_user_del(main_frame):
+
+    # upon creating a small windows 
+    # it returns username, pass1, pass2 , error
+    # elements within that small window 
+
+    global no_of_users
+    
+    small_frame = tk.Frame(main_frame)
+
+    error_label    = tk.Label(small_frame, text="wrong!!! check username", fg="red")
+    username_label = tk.Label(small_frame, text="Username:")
+    username_entry = tk.Entry(small_frame)
+
+
+    username_label.pack(side="top")
+    username_entry.pack(side="top")
+    error_label.pack(side="top") ; error_label.pack_forget()
+
+    separator_line = tk.Frame(small_frame, height=2, bg="black", pady=2)
+    separator_line.pack(side="top", fill="x", pady=2)
+    
+    small_frame.pack(side="top", padx=10)
+
+    no_of_users = no_of_users + 1
+    print("a new frame is added || old_users:", no_of_users)
+
+# attaching all the elements to the frame
+
+    return [username_entry, error_label]
+
+
+def on_click_OK_for_user_del(holding_frame, list_of_small_window):
+
+    # In the future for error label will be added, but given here
+    print("no of old users ", len(list_of_small_window))
+
+    global list_of_old_users
+    
+    list_of_old_users = []
+    
+    for small_frame in list_of_small_window:
+       list_of_old_users.append(small_frame[0].get())
+
+    holding_frame.destroy()
+
+    print("previous:", list_of_old_users)
+    return list_of_old_users
+        
+
+# ------------------------------------------------------
 
 
 def send_msg_single(main_frame, term_btn, username, password):

@@ -30,6 +30,7 @@ config.read("./config.ini")
 common_user = "manikandan"
 common_pass = "169225"
 
+isReconnect = False
 isSUDO = None
 isSTFM = 0
 toSTOP = 0
@@ -49,6 +50,7 @@ term_screen=None
 ctrl_screen=None
 canvas_screen=None
 
+processing_label = None
 
 isSUDO_check_box=None
 
@@ -100,7 +102,10 @@ REFRESH_ICON=tk.PhotoImage(file="./images/refresh.png").subsample(12)
 UNLOCK_USER_ICON  = tk.PhotoImage(file="./images/unlock_user.png").subsample(12)
 LOCK_USER_ICON    = tk.PhotoImage(file="./images/lock_user.png").subsample(12)
 CHANGE_PASSWD_ICON= tk.PhotoImage(file="./images/change_password.png").subsample(12)
+USER_ADD_ICON     = tk.PhotoImage(file="./images/user_add.png").subsample(12) 
+USER_DEL_ICON     = tk.PhotoImage(file="./images/user_del.png").subsample(12)
 
+EYE_ICON = tk.PhotoImage(file="./images/open_eye.png").subsample(16)
 
 image_dict = { "MESSAGE_ICON": MESSAGE_ICON, "LOCK_ICON": LOCK_ICON, "SHUTDOWN_ICON": SHUTDOWN_ICON}
 
@@ -344,10 +349,22 @@ def get_initial_data(client):
     
 def connect_all(list_of_ips, common_username, common_password):
 
-    global list_of_clients, connected_ips_list, missing_ips_list, toSTOP
+    global list_of_clients, connected_ips_list, missing_ips_list, toSTOP, processing_label, isReconnect
     print("Number of IPs : ", len(list_of_ips))
+
+    need_to_connect_count = len(list_of_ips)
+    connection_done_count = 0
+    success_count         = 0
+    failure_count         = 0
+    
+    if(isReconnect == True):
+              need_to_connect = len(missing_ips_list)
+
+    processing_label.config(text= f"finishing {connection_done_count}/{need_to_connect_count}")
+    main_frame.update()
     
     for ip in list_of_ips:
+        
         if(toSTOP == 1):
             toSTOP = 0
             print("\n\nstoped the connected process\n\n")
@@ -355,6 +372,7 @@ def connect_all(list_of_ips, common_username, common_password):
 
         if(ip in connected_ips_list):
             continue
+        
         
         temp_client = paramiko.SSHClient()
         temp_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -373,7 +391,7 @@ def connect_all(list_of_ips, common_username, common_password):
             set_term_btn_hostname(ip, hostname)
             set_term_btn_users(ip, list_of_users)
             
-            connected_ips_list.add(ip)
+            connected_ips_list.add(ip) ; success_count += 1
             missing_ips_list.discard(ip)
 
             change_term_btn_icon( ip, GREEN_ICON)
@@ -385,7 +403,7 @@ def connect_all(list_of_ips, common_username, common_password):
 
             traceback.print_exc()
 
-            missing_ips_list.add(ip)
+            missing_ips_list.add(ip) ; failure_count += 1
             connected_ips_list.discard(ip)
             
             # this part if the number of user is comparetelivy more 
@@ -393,8 +411,17 @@ def connect_all(list_of_ips, common_username, common_password):
             # with open("missing_ips.list", "a") as f:
             #     f.write(ip)
 
+
+        connection_done_count += 1
+        processing_label.config(text= f"finishing {connection_done_count}/{need_to_connect_count}")
+        main_frame.update()
+
+
+
+    processing_label.config(text= f"[ Done ] Success:{success_count} Failure:{failure_count}")
     main_frame.update()
-            
+        
+    isReconnect = True
     return list_of_clients
 
 
@@ -415,7 +442,7 @@ def close_all(list_of_clients):
         for client in list_of_clients:
             client.close()
          
-def run_cmd_all(list_of_clients, cmd, username, password, isSUDO):
+def run_cmd_all(list_of_clients, cmd, username, password, isSUDO, inputs=False):
     global toSTOP
     print("no of client:",len(list_of_clients))
 
@@ -424,6 +451,13 @@ def run_cmd_all(list_of_clients, cmd, username, password, isSUDO):
     global list_of_lists
     
     list_of_lists = []
+    total_count   = len(list_of_clients)
+    finished_count= 0
+    success_count = 0
+    failure_count = 0
+
+    processing_label.config(text=f"finishing {finished_count}/{total_count}")
+    main_frame.update()
     
     for client in list_of_clients:
 
@@ -434,11 +468,15 @@ def run_cmd_all(list_of_clients, cmd, username, password, isSUDO):
     
         stdin = stdout = stderr = None
         ip_address = client.get_transport().getpeername()[0]
-        if (isSUDO == False):
+        if (isSUDO == False and type(inputs) == type(False) ):
             stdin, stdout, stderr = remote_connection.run_cmd(client, cmd)
-        else:
+        elif (isSUDO == True and type(inputs) == type(False) ):
             stdin, stdout, stderr = remote_connection.run_sudo_cmd(client, cmd, username, password)
-
+        elif (isSUDO == False and type(inputs) == type([])):
+            stdin, stdout, stderr = remote_connection.run_cmd_inputs(client, cmd,inputs )
+        elif (isSUDO == True and type(inputs) == type([])):
+            stdin, stdout, stderr = remote_connection.run_sudo_cmd_inputs(client, cmd, username, password, inputs )
+        
         content = ""
         errors  = ""
         print("client:", client.get_transport().getpeername()[0])
@@ -455,10 +493,10 @@ def run_cmd_all(list_of_clients, cmd, username, password, isSUDO):
         exit_code = stdout.channel.recv_exit_status()
     
         if(exit_code == 0):
-            print("success!!!")
+            print("success!!!") ; success_count += 1
             change_term_btn_icon(ip_address, GREEN_ICON)
         else:
-            print("{ FAILED }")
+            print("{ FAILED }") ; failure_count += 1
             change_term_btn_icon(ip_address, RED_ICON)
 
         print("EXIT CODE: ", exit_code)
@@ -472,7 +510,15 @@ def run_cmd_all(list_of_clients, cmd, username, password, isSUDO):
             f.write(errors)
             exit_str = "EXIT_CODE: " + str(exit_code) + "\n"
             f.write(exit_str)
-        
+
+
+        processing_label.config(text=f"finishing {finished_count}/{total_count}")
+        main_frame.update()
+            
+
+    processing_label.config(text=f"[ Done ] Success:{success_count} Failure:{failure_count}")
+    main_frame.update()
+   
     return list_of_lists
 
 
@@ -555,6 +601,10 @@ def send_msg_all():
 def copy_all():
     global list_of_clients, src_file_path, des_file_path
 
+    total_count   = len(list_of_clients)
+    success_count = 0
+    failure_count = 0
+
     if(src_file_path.get() == "" or des_file_path.get() == ""):
         print("File not specified")
         return -1 
@@ -566,13 +616,22 @@ def copy_all():
         print("------- COPY OPERATION ------")
         print("{", ip_address ," }")
         copy_result = remote_connection.copy_file(client, src_file_path.get(), des_file_path.get())
-        if ( copy_result == -1 ):
-            print("SUCCESS")
-            change_term_btn_icon(ip_address,  RED_ICON)
+        if ( copy_result == 0 ):
+            print("SUCCESS") ; success_count += 1
+            change_term_btn_icon(ip_address,  GREEN_ICON)
 
-        elif ( copy_result == 0):
-            print("FAILURE")
-            change_term_btn_icon(ip_address, GREEN_ICON)
+        elif ( copy_result == -1):
+            print("FAILURE") ; failure_count += 1
+            change_term_btn_icon(ip_address, RED_ICON)
+
+
+        processing_label.config(text=f"finishing {success_count + failure_count}/{total_count}")
+        main_frame.update()
+
+
+    processing_label.config(text=f"[ Done ] Success:{success_count} Failure:{failure_count}")
+    main_frame.update()
+        
     return 0
 
 def download_all():
@@ -582,18 +641,32 @@ def download_all():
         print("File not specified")
         return -1 
 
-    src_file_name = os.path.basename(src_file_path.get())
+    total_count   = len(list_of_clients)
+    success_count = 0 
+    failure_count = 0
 
+    src_file_name = os.path.basename(src_file_path.get())
+    
     reset_color_all_term_btns(YELLOW_ICON)
     
     for client in list_of_clients:
+
         ip_address = client.get_transport().getpeername()[0]
         download_result = remote_connection.download_file(client, src_file_path.get(), f"./pulls/{current_date}/{current_time}/{ip_address}/{src_file_name}")
+
         if ( download_result == -1 ):
-            change_term_btn_icon(ip_address,  RED_ICON)
+            change_term_btn_icon(ip_address,  RED_ICON) ; failure_count += 1
 
         elif ( download_result == 0):
-            change_term_btn_icon(ip_address, GREEN_ICON)
+            change_term_btn_icon(ip_address, GREEN_ICON) ; success_count += 1
+
+
+        processing_label.config(text=f"finishing {success_count + failure_count}/{total_count}")
+        main_frame.update()
+
+
+    processing_label.config(text=f"[ Done ] Success:{success_count} Failure:{failure_count}")
+    main_frame.update()
     return 0
 
 
@@ -635,7 +708,7 @@ def shut_down_all():
     shutdown_cmd = config.get("system_cmd", "SHUT_DOWN_NOW")
     print("the LOCK cmd = ", shutdown_cmd)
 
-    run_cmd_all(list_of_clients, lock_cmd, username_entry.get(), password_entry.get(), isSUDO=True)
+    run_cmd_all(list_of_clients, shutdown_cmd, username_entry.get(), password_entry.get(), isSUDO=True)
 
 def change_passwd_all():
         # This function change the passwd for the list of users
@@ -648,13 +721,32 @@ def change_passwd_all():
     print(list_of_new_users)
 
     change_passwd_cmd = config.get("system_cmd", "CHANGE_PASSWD")
-
-
-
+        
     for new_user in list_of_new_users:
-        run_cmd_all(list_of_clients, )
+        print("Changing password for the user:", new_user[0])
+        run_cmd_all(list_of_clients, change_passwd_cmd +" " + new_user[0], username_entry.get(), password_entry.get(), isSUDO=True, inputs=[new_user[1]+"\n", new_user[1]+"\n" ])
         
 
+def user_add_all():
+    pass
+
+    
+def user_del_all():
+
+    global list_of_clients, main_frame    
+
+    list_old_users = get_password.get_old_users(main_frame)
+    print("got the list of users ",list_old_users)
+    
+    user_del_cmd = config.get("system_cmd", "USER_DEL")
+
+    
+    for old_user in list_old_users:
+
+        print("deleting the user:", old_user)
+        net_cmd = user_del_cmd + " " +old_user
+        run_cmd_all(list_of_clients, net_cmd, username_entry.get(), password_entry.get(), isSUDO=True)
+    
 def get_credentials():
 
     global username_entry, password_entry
@@ -685,6 +777,7 @@ def get_des_file_path():
     
 def initialize(main_frame):
     global term_screen, ctrl_screen, canvas_screen,  array_of_term_btns, list_of_ips, list_of_clients, list_of_elements, username_entry, password_entry, isSUDO
+    global processing_label
 
     array_of_term_btns = []
     list_of_ips = json_reader.read_file("./ips.json")  # this function return only the list of the ips scanned
@@ -726,9 +819,11 @@ def initialize(main_frame):
     command_frame    = tk.Frame(ctrl_screen)
     info_frame       = tk.Frame(command_frame)
     user_frame       = tk.Frame(command_frame)
+    processing_frame = tk.Frame(command_frame)
     copy_Frame       = tk.Frame(ctrl_screen)
     other_Frame      = tk.Frame(ctrl_screen)
-        
+
+    
     # cmd_entry   = tk.Entry(main_frame)
     cmd_entry   = tk.Entry(command_frame)
 
@@ -738,6 +833,7 @@ def initialize(main_frame):
 
     # buttons for the right panel
     # once all the button is load we can try to connect or exec command
+
 
     custom_font = font.nametofont("TkDefaultFont").copy()
     custom_font.configure(size=11)
@@ -755,6 +851,10 @@ def initialize(main_frame):
     short_form_btn = tk.Button(other_Frame, text="shfm", command=lambda: short_long_form(array_of_term_btns))
     help_btn       = tk.Button(other_Frame, text="Help")
     exit_btn       = tk.Button(other_Frame, text="Exit")
+
+    processing_label =tk.Label(processing_frame, text="finishing 0/0")
+
+
 
     main_frame.update()
 
@@ -784,6 +884,8 @@ def initialize(main_frame):
     lock_usr_btn  =tk.Button(user_frame, text = "lock user", command =  lock_user )
     unlock_usr_btn=tk.Button(user_frame, text = "unlock user", command= unlock_user)
     change_passwd_btn=tk.Button(user_frame, text="change password", command = change_passwd_all)
+    user_add_btn     = tk.Button(user_frame, text="user add", command = user_add_all)
+    user_del_btn     = tk.Button(user_frame, text="user del", command = user_del_all)
     
     src_browse_btn = tk.Button(copy_Frame, text="src", command = get_src_file_path)
     des_browse_btn = tk.Button(copy_Frame, text="des", command = get_des_file_path)
@@ -797,7 +899,10 @@ def initialize(main_frame):
     lock_usr_btn.config(image=LOCK_USER_ICON)
     unlock_usr_btn.config(image=UNLOCK_USER_ICON)
     change_passwd_btn.config(image=CHANGE_PASSWD_ICON)
+    user_add_btn.config(image=USER_ADD_ICON)
+    user_del_btn.config(image=USER_DEL_ICON)
     refresh_btn.config(image=REFRESH_ICON)
+
 
     msg_btn.image           = MESSAGE_ICON
     lock_btn.image          = LOCK_ICON
@@ -808,6 +913,8 @@ def initialize(main_frame):
     lock_usr_btn.image      = LOCK_USER_ICON
     unlock_usr_btn.image    = UNLOCK_USER_ICON
     change_passwd_btn.image = CHANGE_PASSWD_ICON
+    user_add_btn.image      = USER_ADD_ICON
+    user_del_btn.image      = USER_DEL_ICON
     refresh_btn.image       = REFRESH_ICON
     
     
@@ -828,13 +935,15 @@ def initialize(main_frame):
     #print("y_position: ", y_position)
 
     
-    rearrange.basic_frame_h_pack(info_frame,     [isSUDO_check_box, cmd_btn, msg_btn, lock_btn, shut_down_btn, refresh_btn])
-    rearrange.basic_frame_h_pack(user_frame,     [isDISP_check_box, unlock_usr_btn, lock_usr_btn, change_passwd_btn])
+    rearrange.basic_frame_h_pack(info_frame,       [isSUDO_check_box, cmd_btn, msg_btn, lock_btn, shut_down_btn, refresh_btn])
+    rearrange.basic_frame_h_pack(user_frame,       [isDISP_check_box, unlock_usr_btn, lock_usr_btn, change_passwd_btn, user_add_btn, user_del_btn])
+    rearrange.basic_frame_h_pack(processing_frame, [processing_label])
 
     rearrange.basic_frame_v_pack(connection_frame, [username_label, username_entry, password_label, password_entry, connect_btn])
-    rearrange.basic_frame_v_pack(command_frame,    [cmd_entry, info_frame, user_frame ])
+    rearrange.basic_frame_v_pack(command_frame,    [cmd_entry, info_frame, user_frame , processing_frame])
     rearrange.basic_frame_hv_pack(copy_Frame,      [[src_browse_btn, src_file_label], [des_browse_btn, des_file_label], [copy_btn, download_btn]])
     rearrange.basic_frame_v_pack(other_Frame,      [short_form_btn, help_btn, exit_btn])
+
     
     connection_frame.pack(side="left",anchor="n")
     command_frame.pack(side="left", anchor="n", fill="x", expand=True)

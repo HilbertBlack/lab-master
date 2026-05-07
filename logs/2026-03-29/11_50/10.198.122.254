@@ -1,15 +1,0 @@
-user
-EXIT_CODE: 0
-/home/user
-EXIT_CODE: 0
-sudo: a terminal is required to read the password; either use the -S option to read from standard input or configure an askpass helper
-sudo: a password is required
-EXIT_CODE: 1
-password
-[sudo] password for user: 
-Reading package lists... 0%Reading package lists... 100%Reading package lists... Done
-Building dependency tree... 0%Building dependency tree... 0%Building dependency tree... 50%Building dependency tree... 50%Building dependency tree... Done
-Reading state information... 0% Reading state information... 0%Reading state information... Done
-vim is already the newest version (2:9.0.1378-2+deb12u2).
-0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
-EXIT_CODE: 0
