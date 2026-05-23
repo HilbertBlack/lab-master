@@ -70,7 +70,7 @@ def run_sudo_cmd_inputs(client, cmd, username, password, inputs):
 def copy_file(client, src_file_path, des_file_path):
 
     print("started copying to files")
-
+    print("DST: ", des_file_path)
 
     try:
         ## opening sftp channel
@@ -86,6 +86,7 @@ def copy_file(client, src_file_path, des_file_path):
         return -1
     print("finished copying")
     return 0 
+
 
 
 # def copy_file(client, src_file_path, des_file_path):
@@ -106,21 +107,22 @@ def download_file(client, src_file_path, des_file_path):
 
     des = ""
     try:
-        des = Path(des_file_path)
+        des = Path(des_file_path).expanduser().resolve()
 
         des.parent.mkdir(parents=True, exist_ok=True)
-        
+
+        print("DST:",str(des))
+     
     except Exception as e:
         print("<<<<<<< Directory creation failed >>>>>>>>")
         print("Exception:", repr(e))
         traceback.print_exc()
         return -1
         
-    try:
-        
+    try:        
         ## opening sftp channel
         sftp_channel = client.open_sftp()
-        attributes   = sftp_channel.get(src_file_path, des_file_path)
+        attributes   = sftp_channel.get(src_file_path, str(des))
         sftp_channel.close()
 
         print("file creation successful")
@@ -136,6 +138,53 @@ def download_file(client, src_file_path, des_file_path):
             des.unlink()
             
     return -1
+
+    
+def download_folder(client, src_file_path, des_file_path):
+
+   
+
+    # cheching for the presence of the folder or file in the
+    # remote path. First a sftp_client is opened, which will be used
+    # for any file operation. stat(path) is used to check existance of the folder
+    try :
+    
+        sftp_client = client.open_sftp()
+
+        sftp_client.stat(src_file_path)
+
+        print("src folder EXISTS!!!")
+        # return 0
+
+
+        if not os.path.exists(des_file_path):
+            os.mkdir(local_dir)
+        
+        for filename in sftp_client.listdir(remote_dir):
+            if stat.S_ISDIR(sftp_client.stat(remote_dir + filename).st_mode):
+                # uses '/' path delimiter for remote server
+                download_files(sftp_client, remote_dir + filename + '/', os.path.join(local_dir, filename))
+            else:
+                if not os.path.isfile(os.path.join(local_dir, filename)):
+                    sftp_client.get(remote_dir + filename, os.path.join(local_dir, filename))
+        
+
+        
+            
+    except Exception as e:
+        print("Found error while downloading folder ")
+        print("Exception:", repr(e))
+        traceback.print_exc()
+        return -1
+
+
+
+    
+
+
+
+
+        
 # # creating a client instance
 # client = paramiko.SSHClient()
 # 

@@ -45,17 +45,25 @@ def ribbon_style(main_frame, list_of_elements):
             rel_x = element.winfo_width()
 
 
-def basic_frame_v_pack(frame, list_of_elements):
-
+def basic_frame_v_pack(frame, list_of_elements, list_of_separator = False):
+    count = 0
+    
     for element in list_of_elements:
         element.pack(side="top", fil="x")
-
+        if(list_of_separator != False):
+        
+            list_of_separator[count].pack(side="top", fil="x")
+            count += 1
     
-def basic_frame_h_pack(frame, list_of_elements):
-
+def basic_frame_h_pack(frame, list_of_elements, list_of_separator = False):
+    count = 0
     for element in list_of_elements:
         element.pack(side="left", fil="x")
 
+        if (list_of_separator != False):
+            list_of_separator[count].pack(side="top", fil="x")
+            count += 1
+        
 def basic_frame_hv_pack(frame, list_of_list_elements):
 
     c_row = 0

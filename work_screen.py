@@ -12,15 +12,17 @@ import get_password
 import rearrange as rearrange
 from tkinter import font
 from tkinter import filedialog
-
+from pathlib import Path
+import copy as cp
 
 
 
 current_date = datetime.date.today()
-current_time = datetime.datetime. now().strftime("%H_%M")
+current_time = datetime.datetime.now().strftime("%H_%M")
 print("staring date:", current_date, " starting time:", current_time)
 
-os.makedirs(f"./logs/{current_date}/{current_time}", exist_ok=True)
+logs_dest = Path(f"~/Lab_master/logs/{current_date}/{current_time}").expanduser()
+os.makedirs(str(logs_dest), exist_ok=True)
 
 config = configparser.ConfigParser()
 config.read("./config.ini")
@@ -33,7 +35,7 @@ common_pass = "169225"
 isReconnect = False
 isSUDO = None
 isSTFM = 0
-toSTOP = 0
+isSTOP = 0
 
 missing_ips_list = set()
 connected_ips_list = set()
@@ -77,7 +79,7 @@ cmd_entry      =None
 
 main_frame = tk.Tk()
 main_frame.title("Lab master")
-main_frame.geometry("800x600")
+main_frame.geometry("850x600")
 main_frame.resizable(True, True)
 
 #
@@ -95,8 +97,11 @@ MESSAGE_ICON = tk.PhotoImage(file="./images/message.png").subsample(12)
 LOCK_ICON    = tk.PhotoImage(file="./images/lock.png").subsample(12)
 SHUTDOWN_ICON= tk.PhotoImage(file="./images/shutdown.png").subsample(12)
 RUN_ICON     = tk.PhotoImage(file="./images/play.png").subsample(11)
+STOP_ICON    = tk.PhotoImage(file="./images/stop.png").subsample(12)
 COPY_ICON    = tk.PhotoImage(file="./images/clip_board.png").subsample(14)
-DOWNLOAD_ICON= tk.PhotoImage(file="./images/download.png").subsample(14)
+COPY_MOVE_ICON=tk.PhotoImage(file="./images/copy_move.png").subsample(14)
+DOWNLOAD_ICON = tk.PhotoImage(file="./images/download.png").subsample(14)
+DOWNLOAD_FOLDER_ICON=tk.PhotoImage(file="./images/download_folder.png").subsample(14)
 REFRESH_ICON=tk.PhotoImage(file="./images/refresh.png").subsample(12)
 
 UNLOCK_USER_ICON  = tk.PhotoImage(file="./images/unlock_user.png").subsample(12)
@@ -349,7 +354,7 @@ def get_initial_data(client):
     
 def connect_all(list_of_ips, common_username, common_password):
 
-    global list_of_clients, connected_ips_list, missing_ips_list, toSTOP, processing_label, isReconnect
+    global list_of_clients, connected_ips_list, missing_ips_list, isSTOP, processing_label, isReconnect
     print("Number of IPs : ", len(list_of_ips))
 
     need_to_connect_count = len(list_of_ips)
@@ -358,15 +363,15 @@ def connect_all(list_of_ips, common_username, common_password):
     failure_count         = 0
     
     if(isReconnect == True):
-              need_to_connect = len(missing_ips_list)
+        need_to_connect_count = len(missing_ips_list)
 
     processing_label.config(text= f"finishing {connection_done_count}/{need_to_connect_count}")
     main_frame.update()
     
     for ip in list_of_ips:
         
-        if(toSTOP == 1):
-            toSTOP = 0
+        if(isSTOP == 1):
+            isSTOP = 0
             print("\n\nstoped the connected process\n\n")
             break;
 
@@ -378,7 +383,7 @@ def connect_all(list_of_ips, common_username, common_password):
         temp_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         try:
             print("Trying to connect:", ip)
-            temp_client.connect(hostname = ip, username = common_username, password = common_password, port = 22)
+            temp_client.connect(hostname = ip, username = common_username, password = common_password, port = 22, timeout=5)
             list_of_clients.append(temp_client)
             print("connected: ", ip)
 
@@ -441,12 +446,16 @@ def close_all(list_of_clients):
     else:
         for client in list_of_clients:
             client.close()
+
+    
          
 def run_cmd_all(list_of_clients, cmd, username, password, isSUDO, inputs=False):
-    global toSTOP
+    global isSTOP
     print("no of client:",len(list_of_clients))
 
-    reset_color_all_term_btns(YELLOW_ICON)
+    for client in list_of_clients:
+        ip_address = client.get_transport().getpeername()[0]
+        change_term_btn_icon(ip_address, YELLOW_ICON)
 
     global list_of_lists
     
@@ -461,8 +470,8 @@ def run_cmd_all(list_of_clients, cmd, username, password, isSUDO, inputs=False):
     
     for client in list_of_clients:
 
-        if(toSTOP == 1):
-            toSTOP = 0
+        if(isSTOP == 1):
+            isSTOP = 0
             print("\n\nstoped the RUN CMD process\n\n")
             break;
     
@@ -503,7 +512,8 @@ def run_cmd_all(list_of_clients, cmd, username, password, isSUDO, inputs=False):
 
         list_of_lists.append([ip_address, stdin, stdout, stderr, exit_code])
 
-        with open(f"./logs/{current_date}/{current_time}/{ip_address}", "a") as f:
+        logs_src = Path(f"~/Lab_master/logs/{current_date}/{current_time}/{ip_address}").expanduser()
+        with open(logs_src, "a") as f:
             cmd_str = "CMD_EXECUTED = " + cmd + "\n"
             f.write(cmd_str)
             f.write(content)
@@ -634,6 +644,49 @@ def copy_all():
         
     return 0
 
+def copy_move_all():
+    global list_of_clients, src_file_path, des_file_path
+
+    total_count   = len(list_of_clients)
+    success_count = 0
+    failure_count = 0
+
+    if(src_file_path.get() == "" or des_file_path.get() == ""):
+        print("File not specified")
+        return -1 
+
+    reset_color_all_term_btns(YELLOW_ICON)
+    
+    for client in list_of_clients:
+        ip_address = client.get_transport().getpeername()[0]
+        print("------- COPY MOVE OPERATION ------")
+        print("{", ip_address ," }")
+        copy_result = remote_connection.copy_file(client, src_file_path.get(),  "/var/tmp/temp_file")
+        if ( copy_result == 0 ):
+            print("SUCCESS") ; success_count += 1
+            change_term_btn_icon(ip_address,  GREEN_ICON)
+
+        elif ( copy_result == -1):
+            print("FAILURE") ; failure_count += 1
+            change_term_btn_icon(ip_address, RED_ICON)
+
+            continue
+
+        net_cmd = "sudo mv /var/tmp/temp_file " + des_file_path.get()
+
+        run_cmd_all([client], net_cmd, username_entry.get(), password_entry.get(), isSUDO=True)
+
+
+        processing_label.config(text=f"finishing {success_count + failure_count}/{total_count}")
+        main_frame.update()
+
+
+    processing_label.config(text=f"[ Done ] Success:{success_count} Failure:{failure_count}")
+    main_frame.update()
+        
+    return 0
+
+
 def download_all():
     global list_of_clients, src_file_path, des_file_path
 
@@ -652,7 +705,44 @@ def download_all():
     for client in list_of_clients:
 
         ip_address = client.get_transport().getpeername()[0]
-        download_result = remote_connection.download_file(client, src_file_path.get(), f"./pulls/{current_date}/{current_time}/{ip_address}/{src_file_name}")
+        download_result = remote_connection.download_file(client, src_file_path.get(), f"~/Lab_master/pulls/{current_date}/{current_time}/{ip_address}/{src_file_name}")
+
+        if ( download_result == -1 ):
+            change_term_btn_icon(ip_address,  RED_ICON) ; failure_count += 1
+
+        elif ( download_result == 0):
+            change_term_btn_icon(ip_address, GREEN_ICON) ; success_count += 1
+
+
+        processing_label.config(text=f"finishing {success_count + failure_count}/{total_count}")
+        main_frame.update()
+
+
+    processing_label.config(text=f"[ Done ] Success:{success_count} Failure:{failure_count}")
+    main_frame.update()
+    return 0
+
+
+
+def download_folder_all():
+    global list_of_clients, src_file_path, des_file_path
+
+    if(src_file_path.get() == ""):
+        print("File not specified")
+        return -1 
+
+    total_count   = len(list_of_clients)
+    success_count = 0 
+    failure_count = 0
+
+    src_file_name = os.path.basename(src_file_path.get())
+    
+    reset_color_all_term_btns(YELLOW_ICON)
+    
+    for client in list_of_clients:
+
+        ip_address = client.get_transport().getpeername()[0]
+        download_result = remote_connection.download_folder(client, src_file_path.get(), f"~/Lab_master/pulls/{current_date}/{current_time}/{ip_address}/{src_file_name}")
 
         if ( download_result == -1 ):
             change_term_btn_icon(ip_address,  RED_ICON) ; failure_count += 1
@@ -774,7 +864,26 @@ def get_des_file_path():
     
     des_file_path.set( selected_file )
 
+
+
+def stop_all():
+
+# Set the varibale to 1
+
+    global isSTOP 
+
+    isSTOP = 1
+
+    return isSTOP
+
+
+def exit_main():
+    global list_of_clients, main_frame
     
+    close_all(list_of_clients)
+
+    main_frame.destroy()
+
 def initialize(main_frame):
     global term_screen, ctrl_screen, canvas_screen,  array_of_term_btns, list_of_ips, list_of_clients, list_of_elements, username_entry, password_entry, isSUDO
     global processing_label
@@ -823,7 +932,9 @@ def initialize(main_frame):
     copy_Frame       = tk.Frame(ctrl_screen)
     other_Frame      = tk.Frame(ctrl_screen)
 
-    
+
+
+    copy_btn_panel   = tk.Frame(copy_Frame)
     # cmd_entry   = tk.Entry(main_frame)
     cmd_entry   = tk.Entry(command_frame)
 
@@ -850,12 +961,15 @@ def initialize(main_frame):
 
     short_form_btn = tk.Button(other_Frame, text="shfm", command=lambda: short_long_form(array_of_term_btns))
     help_btn       = tk.Button(other_Frame, text="Help")
-    exit_btn       = tk.Button(other_Frame, text="Exit")
+    exit_btn       = tk.Button(other_Frame, text="Exit", command=exit_main)
 
     processing_label =tk.Label(processing_frame, text="finishing 0/0")
 
 
-
+    
+    ctrl_screen_separator_list   = [tk.Frame(ctrl_screen,   bg="grey", width =2) for _ in range(5)] 
+    command_frame_separator_list = [tk.Frame(command_frame, bg="grey", height=1) for _ in range(5)]
+    
     main_frame.update()
 
     connect_btn = tk.Button(connection_frame, text = "Connect", command=lambda : connect_all(list_of_ips, username_entry.get(), password_entry.get()))
@@ -874,8 +988,11 @@ def initialize(main_frame):
                                                                                     password_entry.get(),  
                                                                                     isSUDO.get()
                                                                                 ))
-    copy_btn    = tk.Button(copy_Frame, text = "Copy", command = copy_all)
-    download_btn= tk.Button(copy_Frame, text = "Download", command = download_all)
+    stop_btn    = tk.Button(info_frame, text = "Stop", command = stop_all)
+    copy_btn    = tk.Button(copy_btn_panel, text = "Copy", command = copy_all)
+    copy_move_btn=tk.Button(copy_btn_panel, text = "copy_sudo_move", command=copy_move_all)
+    download_btn= tk.Button(copy_btn_panel, text = "Download", command = download_all)
+    download_folder_btn=tk.Button(copy_btn_panel, text="Dwnld Folder", command = download_folder_all)
     msg_btn     = tk.Button(info_frame, text = "Msg", command = send_msg_all)
     lock_btn    = tk.Button(info_frame, text = "Lock",command = lock_sessions_all)
     shut_down_btn =tk.Button(info_frame, text = "Shut Down", command = shut_down_all)
@@ -894,7 +1011,10 @@ def initialize(main_frame):
     lock_btn.config(image= LOCK_ICON)
     shut_down_btn.config(image=SHUTDOWN_ICON)
     copy_btn.config(image=COPY_ICON)
+    copy_move_btn.config(image=COPY_MOVE_ICON)
     download_btn.config(image=DOWNLOAD_ICON)
+    download_folder_btn.config(image=DOWNLOAD_FOLDER_ICON)
+    
     cmd_btn.config(image =RUN_ICON)
     lock_usr_btn.config(image=LOCK_USER_ICON)
     unlock_usr_btn.config(image=UNLOCK_USER_ICON)
@@ -902,13 +1022,16 @@ def initialize(main_frame):
     user_add_btn.config(image=USER_ADD_ICON)
     user_del_btn.config(image=USER_DEL_ICON)
     refresh_btn.config(image=REFRESH_ICON)
+    stop_btn.config(image=STOP_ICON)
 
 
     msg_btn.image           = MESSAGE_ICON
     lock_btn.image          = LOCK_ICON
     shut_down_btn.image     = SHUTDOWN_ICON
     copy_btn.image          = COPY_ICON
+    copy_move_btn.image     = COPY_MOVE_ICON
     download_btn.image      = DOWNLOAD_ICON
+    download_folder_btn.image= DOWNLOAD_FOLDER_ICON
     cmd_btn.image           = RUN_ICON
     lock_usr_btn.image      = LOCK_USER_ICON
     unlock_usr_btn.image    = UNLOCK_USER_ICON
@@ -916,7 +1039,7 @@ def initialize(main_frame):
     user_add_btn.image      = USER_ADD_ICON
     user_del_btn.image      = USER_DEL_ICON
     refresh_btn.image       = REFRESH_ICON
-    
+    stop_btn.image          = STOP_ICON
     
     # list_of_elements = [
     # username_label, username_entry, password_label, password_entry, connect_btn, sep_u_r,
@@ -935,20 +1058,21 @@ def initialize(main_frame):
     #print("y_position: ", y_position)
 
     
-    rearrange.basic_frame_h_pack(info_frame,       [isSUDO_check_box, cmd_btn, msg_btn, lock_btn, shut_down_btn, refresh_btn])
+    rearrange.basic_frame_h_pack(info_frame,       [isSUDO_check_box, cmd_btn, stop_btn, msg_btn, lock_btn, shut_down_btn, refresh_btn])
     rearrange.basic_frame_h_pack(user_frame,       [isDISP_check_box, unlock_usr_btn, lock_usr_btn, change_passwd_btn, user_add_btn, user_del_btn])
+    rearrange.basic_frame_h_pack(copy_btn_panel,   [copy_btn, copy_move_btn, download_btn, download_folder_btn])
     rearrange.basic_frame_h_pack(processing_frame, [processing_label])
 
     rearrange.basic_frame_v_pack(connection_frame, [username_label, username_entry, password_label, password_entry, connect_btn])
-    rearrange.basic_frame_v_pack(command_frame,    [cmd_entry, info_frame, user_frame , processing_frame])
-    rearrange.basic_frame_hv_pack(copy_Frame,      [[src_browse_btn, src_file_label], [des_browse_btn, des_file_label], [copy_btn, download_btn]])
+    rearrange.basic_frame_v_pack(command_frame,    [cmd_entry, info_frame, user_frame , processing_frame], command_frame_separator_list)
+    rearrange.basic_frame_hv_pack(copy_Frame,      [[src_browse_btn, src_file_label], [des_browse_btn, des_file_label], [copy_btn_panel, copy_btn_panel]])
     rearrange.basic_frame_v_pack(other_Frame,      [short_form_btn, help_btn, exit_btn])
 
     
-    connection_frame.pack(side="left",anchor="n")
-    command_frame.pack(side="left", anchor="n", fill="x", expand=True)
-    other_Frame.pack(side="right", anchor="n")
-    copy_Frame.pack(side="right", anchor="n")
+    connection_frame.pack(side="left",anchor="n")                                                               ; ctrl_screen_separator_list[0].pack(side="left",anchor="n")
+    command_frame.pack(side="left", anchor="n", fill="x", expand=True)                                          ; ctrl_screen_separator_list[1].pack(side="left",anchor="n")
+    other_Frame.pack(side="right", anchor="n")                                                                  ; ctrl_screen_separator_list[2].pack(side="right",anchor="n")
+    copy_Frame.pack(side="right", anchor="n")                                                                   ;
     
     ctrl_screen.place(relx=0, rely=0, relwidth=1, relheight=0.25)
     canvas_plus_scroll_bar.place(relx=0, rely=0.25, relwidth=1, relheight=0.75)
