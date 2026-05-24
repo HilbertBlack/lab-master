@@ -24,10 +24,21 @@ print("staring date:", current_date, " starting time:", current_time)
 logs_dest = Path(f"~/Lab_master/logs/{current_date}/{current_time}").expanduser()
 os.makedirs(str(logs_dest), exist_ok=True)
 
+
+# Check for the presence of the file in the the path ~/Lab_master/config.ini
+# If NOT exists we put the default config, if we file is present we take that
+# file instead of the default config
+
+config_file_path = Path("~/Lab_master/config.ini").expanduser()
+
+if not config_file_path.exists():
+    with open(config_file_path,"w") as des_file:
+        with open("./config.ini") as src_file:
+            content = src_file.read()
+            des_file.write(content)    
+    
 config = configparser.ConfigParser()
-config.read("./config.ini")
-
-
+config.read(config_file_path)
 
 common_user = "manikandan"
 common_pass = "169225"
@@ -889,7 +900,7 @@ def initialize(main_frame):
     global processing_label
 
     array_of_term_btns = []
-    list_of_ips = json_reader.read_file("./ips.json")  # this function return only the list of the ips scanned
+    list_of_ips = json_reader.read_any_file("./ips.txt")  # this function return only the list of the ips scanned
 
 
     canvas_plus_scroll_bar = tk.Frame(main_frame, bg="red")

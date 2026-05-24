@@ -97,8 +97,6 @@ def get_msg_details(main_frame):
 # this part is get the username to lock or unlock from
 # admin username this function will return entered in
 # the popup window
-
-
 def on_click_OK_for_username(username_entry, holding_frame):
 
     global username
@@ -127,7 +125,7 @@ def get_username(main_frame):
     button.pack(side="right", padx=10)
     entry.pack()
         
-   # password_dialog_box.grab_set()
+    # password_dialog_box.grab_set()
     username_dialog_box.focus_set()
     entry.focus_set()
     
@@ -153,9 +151,9 @@ def see_unsee_passwd(entry):
 
 def add_small_window_for_change_passwd(main_frame):
 
-    # upon creating a small windows 
-    # it returns username, pass1, pass2 , error
-    # elements within that small window 
+# upon creating a small windows 
+# it returns username, pass1, pass2 , error
+# elements within that small window 
 
     global no_of_users
     
@@ -200,7 +198,7 @@ def add_small_window_for_change_passwd(main_frame):
 
 def on_click_OK_for_change_passwd(holding_frame, list_of_small_window):
 
-    # first check "new password" and "retype password" are same
+# first check "new password" and "retype password" are same
     print("no of users ", len(list_of_small_window))
     global list_of_new_users
     isAll_correct = 1
@@ -233,10 +231,10 @@ def on_click_OK_for_change_passwd(holding_frame, list_of_small_window):
         print("password are wrong for few users")
     
 def get_new_passwd(main_frame):
-    # This function returns a list [n, [username, password], [username, password], ...]
-    # also manages it UI by it small function names add_small_window
-    # the starting count to 1 upon running for one time initialy
-    
+# This function returns a list [n, [username, password], [username, password], ...]
+# also manages it UI by it small function names add_small_window
+# the starting count to 1 upon running for one time initialy
+
     global no_of_users, list_of_new_users
 
     list_of_small_window = []
@@ -360,21 +358,17 @@ def on_click_OK_for_user_del(holding_frame, list_of_small_window):
     print("previous:", list_of_old_users)
     return list_of_old_users
         
-
 # ------------------------------------------------------
-
 
 def send_msg_single(main_frame, term_btn, username, password):
 
     small_msg = get_msg_details(main_frame)
 
     print("got message", small_msg)
-#    resutl = remote_connection.run_sudo_cmd(client, cmd, username, password)
     final_msg = f'''GUI_USER=$(loginctl list-sessions --no-legend | awk '$4=="seat0" {{print $3; exit}}');
     GUI_UID=$(id -u "$GUI_USER");
     [ -n "$GUI_USER" ] && sudo -u "$GUI_USER" DISPLAY=:0 XDG_RUNTIME_DIR=/run/user/$GUI_UID notify-send "{small_msg}"
     '''
-   # connect_default(final_msg)
     try:
         remote_connection.run_sudo_cmd(term_btn. client, final_msg, username, password)
     except Exception as e:
@@ -382,9 +376,7 @@ def send_msg_single(main_frame, term_btn, username, password):
 
 def lock_screen_single(main_frame, term_btn, username, password):
 
-#    resutl = remote_connection.run_sudo_cmd(client, cmd, username, password)
     final_msg = config.get("system_cmd", "LOCK_SCREEN")
-   # connect_default(final_msg)
     try:
         remote_connection.run_sudo_cmd(term_btn. client, final_msg, username, password)
     except Exception as e:
@@ -392,16 +384,12 @@ def lock_screen_single(main_frame, term_btn, username, password):
 
 def shut_down_single(main_frame, term_btn, username, password):
 
-
-#    resutl = remote_connection.run_sudo_cmd(client, cmd, username, password)
     final_msg = config.get("system_cmd", "SHUT_DOWN_NOW")
-   # connect_default(final_msg)
+  
     try:
         remote_connection.run_sudo_cmd(term_btn. client, final_msg, username, password)
     except Exception as e:
         traceback.print_exc()
-
-
 
 def on_click_OK_single_host(option, holding_frame):
 
