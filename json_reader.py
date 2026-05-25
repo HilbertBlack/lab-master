@@ -70,12 +70,8 @@ def select_path_btn_click(holding_frame, src_file_path, error_label):
 
     print("File exists !!!")
 
-    if (file_path.suffix != ".txt" and file_path.suffix != ".json"):
-        error_label.config(text="enter valid file format")
-        return -1
-        
     holding_frame.destroy()
-    return 0
+        
 
 def read_any_file(main_frame):
 
