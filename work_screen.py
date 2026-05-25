@@ -533,7 +533,7 @@ def run_cmd_all(list_of_clients, cmd, username, password, isSUDO, inputs=False):
             f.write(exit_str)
 
 
-        processing_label.config(text=f"finishing {finished_count}/{total_count}")
+        processing_label.config(text=f"finishing {success_count + failure_count}/{total_count}")
         main_frame.update()
             
 
@@ -900,7 +900,7 @@ def initialize(main_frame):
     global processing_label
 
     array_of_term_btns = []
-    list_of_ips = json_reader.read_any_file("./ips.txt")  # this function return only the list of the ips scanned
+    list_of_ips = json_reader.read_any_file(main_frame)  # this function return only the list of the ips scanned
 
 
     canvas_plus_scroll_bar = tk.Frame(main_frame, bg="red")
