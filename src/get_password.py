@@ -2,6 +2,7 @@ import tkinter as tk
 import remote_connection
 import shell_process
 import configparser as configparser
+from pathlib import Path
 
 password=""
 username=""
@@ -13,8 +14,10 @@ list_of_old_users = []
 # OPEN_EYE = tk.PhotoImage(file="./images/open_eye.png")
 
 
+config_file_path = Path("~/Lab_master/config.ini").expanduser()
+
 config = configparser.ConfigParser()
-config.read("./config.ini")
+config.read(config_file_path)
 
 
 print(config.get("system_cmd","LOCK_SCREEN"))

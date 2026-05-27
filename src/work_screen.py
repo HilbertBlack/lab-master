@@ -8,13 +8,12 @@ import remote_connection as remote_connection
 import json_reader as json_reader
 import find_user as find_user
 import window_functions as window_functions
-import get_password 
 import rearrange as rearrange
 from tkinter import font
 from tkinter import filedialog
 from pathlib import Path
 import copy as cp
-
+from base_dir import BASE_DIR
 
 
 current_date = datetime.date.today()
@@ -33,12 +32,17 @@ config_file_path = Path("~/Lab_master/config.ini").expanduser()
 
 if not config_file_path.exists():
     with open(config_file_path,"w") as des_file:
-        with open("./config.ini") as src_file:
+        with open(BASE_DIR / "config.ini") as src_file:
             content = src_file.read()
             des_file.write(content)    
     
 config = configparser.ConfigParser()
 config.read(config_file_path)
+
+
+# this is imported here as we need the file and folder need to be created
+import get_password 
+
 
 common_user = "manikandan"
 common_pass = "169225"
@@ -93,37 +97,35 @@ main_frame.title("Lab master")
 main_frame.geometry("850x600")
 main_frame.resizable(True, True)
 
-#
+
 # there is a change made here
 #need to check of any fault occurs
 DEFAULT_ICON_SIZE = (105,90)
 
-GREEN_ICON = tk.PhotoImage(file="./images/green.png").subsample(5)
-GREY_ICON  = tk.PhotoImage(file="./images/grey.png").subsample(5)
-RED_ICON   = tk.PhotoImage(file="./images/red.png").subsample(5)
-YELLOW_ICON= tk.PhotoImage(file="./images/yellow.png").subsample(5)
-RED_CROSS_ICON = tk.PhotoImage(file="./images/redCross.png").subsample(5)
+GREEN_ICON           = tk.PhotoImage(file=BASE_DIR / "images" / "green.png").subsample(5)
+GREY_ICON            = tk.PhotoImage(file=BASE_DIR / "images" / "grey.png").subsample(5)
+RED_ICON             = tk.PhotoImage(file=BASE_DIR / "images" / "red.png").subsample(5)
+YELLOW_ICON          = tk.PhotoImage(file=BASE_DIR / "images" / "yellow.png").subsample(5)
+RED_CROSS_ICON       = tk.PhotoImage(file=BASE_DIR / "images" / "redCross.png").subsample(5)
 
-MESSAGE_ICON = tk.PhotoImage(file="./images/message.png").subsample(12)
-LOCK_ICON    = tk.PhotoImage(file="./images/lock.png").subsample(12)
-SHUTDOWN_ICON= tk.PhotoImage(file="./images/shutdown.png").subsample(12)
-RUN_ICON     = tk.PhotoImage(file="./images/play.png").subsample(11)
-STOP_ICON    = tk.PhotoImage(file="./images/stop.png").subsample(12)
-COPY_ICON    = tk.PhotoImage(file="./images/clip_board.png").subsample(14)
-COPY_MOVE_ICON=tk.PhotoImage(file="./images/copy_move.png").subsample(14)
-DOWNLOAD_ICON = tk.PhotoImage(file="./images/download.png").subsample(14)
-DOWNLOAD_FOLDER_ICON=tk.PhotoImage(file="./images/download_folder.png").subsample(14)
-REFRESH_ICON=tk.PhotoImage(file="./images/refresh.png").subsample(12)
+MESSAGE_ICON         = tk.PhotoImage(file=BASE_DIR / "images" / "message.png").subsample(12)
+LOCK_ICON            = tk.PhotoImage(file=BASE_DIR / "images" / "lock.png").subsample(12)
+SHUTDOWN_ICON        = tk.PhotoImage(file=BASE_DIR / "images" / "shutdown.png").subsample(12)
+RUN_ICON             = tk.PhotoImage(file=BASE_DIR / "images" / "play.png").subsample(11)
+STOP_ICON            = tk.PhotoImage(file=BASE_DIR / "images" / "stop.png").subsample(12)
+COPY_ICON            = tk.PhotoImage(file=BASE_DIR / "images" / "clip_board.png").subsample(14)
+COPY_MOVE_ICON       = tk.PhotoImage(file=BASE_DIR / "images" / "copy_move.png").subsample(14)
+DOWNLOAD_ICON        = tk.PhotoImage(file=BASE_DIR / "images" / "download.png").subsample(14)
+DOWNLOAD_FOLDER_ICON = tk.PhotoImage(file=BASE_DIR / "images" / "download_folder.png").subsample(14)
+REFRESH_ICON         = tk.PhotoImage(file=BASE_DIR / "images" / "refresh.png").subsample(12)
 
-UNLOCK_USER_ICON  = tk.PhotoImage(file="./images/unlock_user.png").subsample(12)
-LOCK_USER_ICON    = tk.PhotoImage(file="./images/lock_user.png").subsample(12)
-CHANGE_PASSWD_ICON= tk.PhotoImage(file="./images/change_password.png").subsample(12)
-USER_ADD_ICON     = tk.PhotoImage(file="./images/user_add.png").subsample(12) 
-USER_DEL_ICON     = tk.PhotoImage(file="./images/user_del.png").subsample(12)
+UNLOCK_USER_ICON     = tk.PhotoImage(file=BASE_DIR / "images" / "unlock_user.png").subsample(12)
+LOCK_USER_ICON       = tk.PhotoImage(file=BASE_DIR / "images" / "lock_user.png").subsample(12)
+CHANGE_PASSWD_ICON   = tk.PhotoImage(file=BASE_DIR / "images" / "change_password.png").subsample(12)
+USER_ADD_ICON        = tk.PhotoImage(file=BASE_DIR / "images" / "user_add.png").subsample(12)
+USER_DEL_ICON        = tk.PhotoImage(file=BASE_DIR / "images" / "user_del.png").subsample(12)
 
-EYE_ICON = tk.PhotoImage(file="./images/open_eye.png").subsample(16)
-
-image_dict = { "MESSAGE_ICON": MESSAGE_ICON, "LOCK_ICON": LOCK_ICON, "SHUTDOWN_ICON": SHUTDOWN_ICON}
+EYE_ICON             = tk.PhotoImage(file=BASE_DIR / "images" / "open_eye.png").subsample(16)
 
 src_file_path = tk.StringVar(value="src  file")
 des_file_path = tk.StringVar(value="des  file ")
