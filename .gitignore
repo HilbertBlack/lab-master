@@ -1,2 +1,5 @@
-__pycache__
-.gitignore
+/src/__pycache__/
+.venv/
+src/build/
+src/dist/
+src/*.spec

@@ -138,6 +138,29 @@
     }
     .btn-s:hover { border-color: rgba(255,255,255,.25); background: rgba(255,255,255,.04); transform: translateY(-2px); }
 
+    /* ── APP TITLE HEADER ── */
+    .app-title-header {
+      width: 100%; max-width: 860px; margin: 0 auto;
+      text-align: center; padding: 20px 20px 28px;
+    }
+    .app-title-header .app-name {
+      font-family: var(--mono);
+      font-size: clamp(52px, 10vw, 108px);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      color: var(--text);
+    }
+    .app-title-header .app-name span { color: var(--green); }
+    .app-title-header .app-tagline {
+      font-family: var(--mono);
+      font-size: clamp(11px, 1.3vw, 15px);
+      color: var(--muted);
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      margin-top: 12px;
+    }
+
     /* ── REAL SCREENSHOT FRAME ── */
     .screen-frame {
       width: 100%; max-width: 860px; margin: 0 auto;
@@ -146,15 +169,6 @@
       overflow: hidden;
       box-shadow: 0 0 0 1px rgba(29,185,84,.08), 0 40px 90px rgba(0,0,0,.7);
     }
-    .screen-titlebar {
-      background: #2b2b2b;
-      display: flex; align-items: center; gap: 7px;
-      padding: 10px 14px;
-      border-bottom: 1px solid rgba(0,0,0,.4);
-    }
-    .dot { width: 12px; height: 12px; border-radius: 50%; }
-    .dr { background: #ff5f57; } .dy { background: #febc2e; } .dg { background: #28c840; }
-    .win-title { font-family: var(--mono); font-size: 12px; color: #aaa; margin-left: 6px; }
     .screen-frame img {
       width: 100%; display: block;
     }
@@ -291,7 +305,7 @@
       background: var(--bg); border: 1px solid var(--border2); border-radius: var(--r-lg);
       overflow: hidden;
     }
-    .ft-titlebar { background: #2b2b2b; display: flex; align-items: center; gap: 7px; padding: 9px 14px; border-bottom: 1px solid rgba(0,0,0,.4); }
+    .ft-titlebar { display: flex; align-items: center; gap: 7px; padding: 10px 16px; }
     .ft-t { font-family: var(--mono); font-size: 11px; color: #999; margin-left: 6px; }
     .ft-body { padding: 24px; display: flex; flex-direction: column; gap: 14px; }
     .ft-row { display: flex; align-items: center; gap: 12px; }
@@ -426,12 +440,12 @@
   <div class="badge">AGENTLESS · SSH · LINUX · LAN</div>
   <h1>Control every Linux machine<br>on your LAN from <em>one place</em></h1>
   <p class="hero-sub">
-    Lab Master is a Python desktop app that orchestrates all Linux machines on your local network over plain SSH — no agents, no daemons, no extra setup on targets.
+    Lab Master is a Python Tkinter desktop app that orchestrates all Linux machines on your local network over plain SSH — no agents, no daemons, no extra setup on targets.
   </p>
   <div class="cta-row">
-    <a href="#install" class="btn-p">
+    <a href="https://github.com/HilbertBlack/lab-master/releases/download/v1.0.0/labmaster" class="btn-p">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      Install
+      Download v1.0.0
     </a>
     <a href="https://github.com/HilbertBlack/lab-master" target="_blank" class="btn-s">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
@@ -439,12 +453,14 @@
     </a>
   </div>
 
-  <!-- Real app window mockup with screenshot -->
+  <!-- Big app title -->
+  <div class="app-title-header fi vis">
+    <div class="app-name"><span>Lab</span> Master</div>
+    <div class="app-tagline">Agentless Linux LAN Orchestration</div>
+  </div>
+
+  <!-- Real screenshot, no chrome frame -->
   <div class="screen-frame fi vis">
-    <div class="screen-titlebar">
-      <span class="dot dr"></span><span class="dot dy"></span><span class="dot dg"></span>
-      <span class="win-title">Lab Master</span>
-    </div>
     <img src="./assets/screen_shot1.png" alt="Lab Master application screenshot showing the main interface with toolbar controls and terminal tiles for connected machines"/>
   </div>
 </section>
@@ -510,7 +526,7 @@
       <div class="ficon o">🖥️</div>
       <div class="ftitle">Terminal Tile View</div>
       <div class="fdesc">Each connected machine gets its own terminal tile in the grid — showing its IP, live command output, and status. Scales automatically as more machines are added.</div>
-      <span class="ftag o">PyQt5 / GTK live output</span>
+      <span class="ftag o">Python Tkinter · live output</span>
     </div>
   </div>
 </section>
@@ -639,10 +655,6 @@
       <div class="tile-header">10.11.96.128</div>
       <div class="tile-term"><span class="tile-prompt">&gt;_ </span><span class="tile-out">users: 2 logged in</span><br><span class="tile-prompt">&gt;_ </span><span class="tile-cursor"></span></div>
     </div>
-    <div class="tile" style="border-style:dashed; border-color:rgba(29,185,84,.2);">
-      <div class="tile-header" style="color:var(--green)">+ add machine</div>
-      <div class="tile-term" style="background:rgba(29,185,84,.03); display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:11px;">Enter IP &amp; credentials</div>
-    </div>
   </div>
 </section>
 
@@ -650,9 +662,8 @@
 <section id="filetransfer">
   <div class="ft-inner">
     <div class="ft-ui fi">
-      <div class="ft-titlebar">
-        <span class="dot dr"></span><span class="dot dy"></span><span class="dot dg"></span>
-        <span class="ft-t">File Transfer Panel</span>
+      <div class="ft-titlebar" style="background:var(--surface2);border-bottom:1px solid var(--border);">
+        <span class="ft-t" style="margin-left:0;color:var(--green);font-weight:700;">File Transfer</span>
       </div>
       <div class="ft-body">
         <div class="ft-row">
@@ -670,12 +681,6 @@
         </div>
         <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:8px;display:flex;gap:12px;">
           <span>finishing 0/0</span>
-          <span style="color:var(--border2)">|</span>
-          <span style="color:var(--green)">shfm</span>
-          <span style="color:var(--border2)">|</span>
-          <span>Help</span>
-          <span style="color:var(--border2)">|</span>
-          <span>Exit</span>
         </div>
       </div>
     </div>
@@ -688,7 +693,6 @@
         <li><strong style="color:var(--text);font-weight:600;">Copy from Remote</strong> — pull a file or directory back from a remote machine to your local destination path</li>
         <li><strong style="color:var(--text);font-weight:600;">Sudo Copy</strong> — same as copy to remote but runs the transfer with sudo privileges on the target side, so you can write to root-owned directories</li>
         <li>Progress tracked live in the status bar — <code style="color:var(--green);font-family:var(--mono);font-size:12px;">finishing N/N</code> shows completed vs total transfers</li>
-        <li><code style="color:var(--green);font-family:var(--mono);font-size:12px;">shfm</code> button opens the full SSH file manager for browsing remote filesystems</li>
       </ul>
     </div>
   </div>
@@ -767,12 +771,25 @@
   <div class="inst-inner">
     <div class="sec-lbl">GET STARTED</div>
     <h2 class="sec-h">Install Lab Master</h2>
-    <p class="sec-sub">Python 3.9+ desktop app. Runs on any Linux desktop with PyQt5 or GTK available.</p>
+    <p class="sec-sub">Python 3 desktop app built with Tkinter. Runs on any Linux desktop — no GUI framework to install separately.</p>
+
+    <!-- Download button prominent -->
+    <div style="margin-top:36px;margin-bottom:32px;display:flex;flex-wrap:wrap;gap:14px;align-items:center;">
+      <a href="https://github.com/HilbertBlack/lab-master/releases/download/v1.0.0/labmaster"
+         style="display:inline-flex;align-items:center;gap:10px;background:var(--green);color:#000;
+                padding:14px 32px;border-radius:10px;font-family:var(--mono);font-size:15px;
+                font-weight:700;text-decoration:none;transition:all .2s;"
+         onmouseover="this.style.background='#22c55e';this.style.transform='translateY(-2px)'"
+         onmouseout="this.style.background='#1db954';this.style.transform='none'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download labmaster v1.0.0
+      </a>
+      <span style="font-family:var(--mono);font-size:12px;color:var(--muted);">Linux executable · no install needed</span>
+    </div>
 
     <div class="inst-block fi">
       <div class="inst-tabs">
         <div class="inst-tab on" onclick="tab(this,'t-git')">From Source</div>
-        <div class="inst-tab" onclick="tab(this,'t-pip')">pip install</div>
       </div>
 
       <div class="inst-body" id="t-git">
@@ -785,31 +802,21 @@
           <span class="cl"><span class="cg">python3 -m venv .venv &amp;&amp; source .venv/bin/activate</span></span>
           <span class="cl"> </span>
           <span class="cl"><span class="cc"># Install dependencies</span></span>
-          <span class="cl"><span class="cg">pip install -r requirements.txt</span></span>
+          <span class="cl"><span class="cg">pip3 install -r requirements.txt</span></span>
           <span class="cl"> </span>
           <span class="cl"><span class="cc"># Launch Lab Master</span></span>
-          <span class="cl"><span class="cg">python </span><span class="ca">main.py</span></span>
-        </div>
-      </div>
-
-      <div class="inst-body" id="t-pip" style="display:none">
-        <div class="code-block">
-          <span class="cl"><span class="cc"># Install from PyPI</span></span>
-          <span class="cl"><span class="cg">pip install </span><span class="ca">lab-master</span></span>
-          <span class="cl"> </span>
-          <span class="cl"><span class="cc"># Run</span></span>
-          <span class="cl"><span class="cg">lab-master</span></span>
+          <span class="cl"><span class="cg">python3 </span><span class="ca">./src/work_screen.py</span></span>
         </div>
       </div>
     </div>
 
     <div class="req-row">
-      <div class="req-card"><div class="req-lbl">RUNTIME</div><div class="req-val">Python 3.9+</div></div>
-      <div class="req-card"><div class="req-lbl">GUI FRAMEWORK</div><div class="req-val">Tkinter</div></div>
+      <div class="req-card"><div class="req-lbl">RUNTIME</div><div class="req-val">Python 3</div></div>
+      <div class="req-card"><div class="req-lbl">GUI FRAMEWORK</div><div class="req-val">Tkinter (built-in)</div></div>
       <div class="req-card"><div class="req-lbl">SSH LIBRARY</div><div class="req-val">paramiko</div></div>
       <div class="req-card"><div class="req-lbl">TARGETS NEED</div><div class="req-val">sshd · Linux only</div></div>
       <div class="req-card"><div class="req-lbl">NETWORK</div><div class="req-val">LAN / same subnet</div></div>
-      <!-- <div class="req-card"><div class="req-lbl">LICENSE</div><div class="req-val">MIT · Open source</div></div> -->
+      <div class="req-card"><div class="req-lbl">LICENSE</div><div class="req-val">MIT · Open source</div></div>
     </div>
   </div>
 </section>
@@ -823,7 +830,7 @@
     <li><a href="#toolbar">Toolbar</a></li>
     <li><a href="#install">Install</a></li>
   </ul>
-  <!-- <div class="fcopy">MIT License · Built with Python · Agentless Linux LAN Orchestration</div> -->
+  <div class="fcopy">MIT License · Built with Python · Agentless Linux LAN Orchestration</div>
 </footer>
 
 <script>
