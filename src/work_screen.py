@@ -45,7 +45,7 @@ import get_password
 
 
 common_user = "manikandan"
-common_pass = "169225"
+common_pass = "******"
 
 isReconnect = False
 isSUDO = None

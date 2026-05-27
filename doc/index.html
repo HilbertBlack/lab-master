@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lab Master — Agentless Linux LAN Orchestration</title>
+  <meta name="description" content="Lab Master is an agentless Python desktop app for orchestrating all Linux machines on your LAN — run commands, notify, lock, shutdown, transfer files and more."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:       #0e1117;
+      --surface:  #161b25;
+      --surface2: #1e2535;
+      --border:   rgba(255,255,255,0.07);
+      --border2:  rgba(255,255,255,0.13);
+      --green:    #1db954;
+      --green-d:  #16a34a;
+      --green-glow: rgba(29,185,84,0.18);
+      --blue:     #3b82f6;
+      --orange:   #f97316;
+      --red:      #ef4444;
+      --yellow:   #eab308;
+      --text:     #dce6f0;
+      --muted:    #6b7c93;
+      --mono:     'IBM Plex Mono', monospace;
+      --sans:     'IBM Plex Sans', sans-serif;
+      --r:        10px;
+      --r-lg:     16px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* grid bg */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(29,185,84,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(29,185,84,0.025) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 5%;
+      background: rgba(14,17,23,0.88);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-brand {
+      font-family: var(--mono); font-size: 17px; font-weight: 700;
+      color: var(--green); text-decoration: none;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .nav-brand .lb { color: var(--text); font-weight: 400; }
+    .nav-links { display: flex; gap: 28px; list-style: none; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: 14px; font-weight: 500; transition: color .2s; }
+    .nav-links a:hover { color: var(--text); }
+    .nav-gh {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: var(--green); color: #000 !important;
+      padding: 6px 16px; border-radius: 6px; font-size: 13px !important; font-weight: 600 !important;
+      transition: background .2s;
+    }
+    .nav-gh:hover { background: #22c55e !important; }
+
+    /* ── SECTIONS ── */
+    section { position: relative; z-index: 1; }
+
+    /* ── HERO ── */
+    #hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center;
+      padding: 110px 5% 70px;
+    }
+    .badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(29,185,84,0.1);
+      border: 1px solid rgba(29,185,84,0.28);
+      color: var(--green); font-family: var(--mono); font-size: 11px;
+      letter-spacing: .1em; padding: 5px 14px; border-radius: 100px;
+      margin-bottom: 28px;
+    }
+    .badge::before {
+      content: ''; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--green);
+      animation: blink 2s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+    h1 {
+      font-family: var(--mono); font-size: clamp(34px,5.5vw,66px);
+      font-weight: 700; line-height: 1.1; letter-spacing: -.02em;
+      margin-bottom: 22px;
+    }
+    h1 em { font-style: normal; color: var(--green); }
+
+    .hero-sub {
+      font-size: clamp(15px,1.8vw,18px); color: var(--muted);
+      max-width: 580px; margin: 0 auto 38px; font-weight: 300;
+    }
+
+    .cta-row {
+      display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;
+      margin-bottom: 64px;
+    }
+    .btn-p {
+      background: var(--green); color: #000;
+      padding: 12px 26px; border-radius: 8px;
+      text-decoration: none; font-weight: 600; font-size: 14px;
+      display: inline-flex; align-items: center; gap: 8px;
+      transition: all .2s;
+    }
+    .btn-p:hover { background: #22c55e; transform: translateY(-2px); }
+    .btn-s {
+      background: transparent; color: var(--text);
+      padding: 12px 26px; border-radius: 8px;
+      border: 1px solid var(--border2); text-decoration: none;
+      font-weight: 500; font-size: 14px;
+      display: inline-flex; align-items: center; gap: 8px;
+      transition: all .2s;
+    }
+    .btn-s:hover { border-color: rgba(255,255,255,.25); background: rgba(255,255,255,.04); transform: translateY(-2px); }
+
+    /* ── REAL SCREENSHOT FRAME ── */
+    .screen-frame {
+      width: 100%; max-width: 860px; margin: 0 auto;
+      border-radius: var(--r-lg);
+      border: 1px solid var(--border2);
+      overflow: hidden;
+      box-shadow: 0 0 0 1px rgba(29,185,84,.08), 0 40px 90px rgba(0,0,0,.7);
+    }
+    .screen-titlebar {
+      background: #2b2b2b;
+      display: flex; align-items: center; gap: 7px;
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(0,0,0,.4);
+    }
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+    .dr { background: #ff5f57; } .dy { background: #febc2e; } .dg { background: #28c840; }
+    .win-title { font-family: var(--mono); font-size: 12px; color: #aaa; margin-left: 6px; }
+    .screen-frame img {
+      width: 100%; display: block;
+    }
+
+    /* ── STATS ── */
+    .statsbar {
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 40px;
+      padding: 40px 5%;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .stat { text-align: center; }
+    .stat-n { font-family: var(--mono); font-size: 30px; font-weight: 700; color: var(--green); display: block; }
+    .stat-l { font-size: 13px; color: var(--muted); margin-top: 3px; }
+
+    /* ── SECTION HEADER ── */
+    .sec-lbl { font-family: var(--mono); font-size: 11px; color: var(--green); letter-spacing: .15em; text-transform: uppercase; margin-bottom: 10px; }
+    .sec-h { font-family: var(--mono); font-size: clamp(24px,3.5vw,38px); font-weight: 700; letter-spacing: -.02em; line-height: 1.2; margin-bottom: 14px; }
+    .sec-sub { font-size: 16px; color: var(--muted); max-width: 500px; margin-bottom: 52px; }
+
+    /* ── FEATURES ── */
+    #features { padding: 96px 5%; max-width: 1100px; margin: 0 auto; }
+    .feat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px,1fr)); gap: 18px; }
+    .feat-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r-lg); padding: 26px;
+      transition: border-color .2s, transform .2s; position: relative; overflow: hidden;
+    }
+    .feat-card::after {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg,transparent,var(--green),transparent);
+      opacity: 0; transition: opacity .3s;
+    }
+    .feat-card:hover { border-color: rgba(29,185,84,.3); transform: translateY(-3px); }
+    .feat-card:hover::after { opacity: 1; }
+    .ficon {
+      width: 42px; height: 42px; border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 19px; margin-bottom: 16px;
+      background: rgba(29,185,84,.1);
+    }
+    .ficon.b { background: rgba(59,130,246,.1); }
+    .ficon.o { background: rgba(249,115,22,.1); }
+    .ficon.r { background: rgba(239,68,68,.1); }
+    .ficon.y { background: rgba(234,179,8,.1); }
+    .ftitle { font-family: var(--mono); font-size: 14px; font-weight: 700; margin-bottom: 9px; }
+    .fdesc { font-size: 13px; color: var(--muted); line-height: 1.65; }
+    .ftag {
+      display: inline-block; margin-top: 13px;
+      font-family: var(--mono); font-size: 10px; color: var(--green);
+      background: rgba(29,185,84,.08); padding: 3px 9px; border-radius: 4px;
+    }
+    .ftag.b { color: var(--blue); background: rgba(59,130,246,.08); }
+    .ftag.o { color: var(--orange); background: rgba(249,115,22,.08); }
+    .ftag.r { color: var(--red); background: rgba(239,68,68,.08); }
+    .ftag.y { color: var(--yellow); background: rgba(234,179,8,.08); }
+
+    /* ── TOOLBAR EXPLAINER ── */
+    #toolbar { padding: 96px 5%; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background: var(--surface); }
+    .tb-inner { max-width: 1100px; margin: 0 auto; }
+    .toolbar-ui {
+      background: var(--bg); border: 1px solid var(--border2);
+      border-radius: var(--r-lg); padding: 28px 32px; margin-top: 48px;
+    }
+    .tb-row {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+    .tb-flag {
+      display: flex; align-items: center; gap: 6px;
+      font-family: var(--mono); font-size: 12px; color: var(--muted);
+      background: var(--surface2); border: 1px solid var(--border);
+      padding: 5px 12px; border-radius: 6px;
+    }
+    .tb-flag input[type=checkbox] { accent-color: var(--green); width: 13px; height: 13px; }
+    .tb-sep { width: 1px; height: 30px; background: var(--border2); }
+    .tb-btn {
+      width: 40px; height: 40px; border-radius: 8px;
+      border: 1px solid var(--border2); background: var(--surface2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; cursor: pointer; transition: all .15s;
+      position: relative;
+    }
+    .tb-btn:hover { border-color: rgba(29,185,84,.4); background: rgba(29,185,84,.07); }
+    .tb-btn .tip {
+      display: none; position: absolute; bottom: calc(100% + 6px); left: 50%;
+      transform: translateX(-50%); background: #1e2535; color: var(--text);
+      font-family: var(--mono); font-size: 11px; white-space: nowrap;
+      padding: 4px 9px; border-radius: 4px; border: 1px solid var(--border2); z-index: 10;
+    }
+    .tb-btn:hover .tip { display: block; }
+    .tb-legend {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
+      gap: 12px; margin-top: 24px;
+    }
+    .tb-leg-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px;
+    }
+    .tb-leg-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .tb-leg-body {}
+    .tb-leg-name { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+    .tb-leg-desc { font-size: 11px; color: var(--muted); line-height: 1.5; }
+
+    /* ── TERMINAL TILES ── */
+    #tiles { padding: 96px 5%; max-width: 1100px; margin: 0 auto; }
+    .tile-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
+      gap: 14px; margin-top: 48px;
+    }
+    .tile {
+      border-radius: 8px; overflow: hidden;
+      border: 1px solid var(--border2);
+    }
+    .tile-header {
+      background: #2b3040; padding: 5px 10px;
+      font-family: var(--mono); font-size: 11px; color: #9ab;
+    }
+    .tile-term {
+      background: #1c3020; padding: 14px; min-height: 90px;
+      font-family: var(--mono); font-size: 12px; line-height: 1.7;
+    }
+    .tile-prompt { color: var(--green); }
+    .tile-out { color: #a0cca8; }
+    .tile-cursor { display: inline-block; width: 8px; height: 14px; background: var(--green); vertical-align: middle; animation: cur 1.1s step-end infinite; }
+    @keyframes cur { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    /* ── FILE TRANSFER ── */
+    #filetransfer { padding: 96px 5%; background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .ft-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+    .ft-ui {
+      background: var(--bg); border: 1px solid var(--border2); border-radius: var(--r-lg);
+      overflow: hidden;
+    }
+    .ft-titlebar { background: #2b2b2b; display: flex; align-items: center; gap: 7px; padding: 9px 14px; border-bottom: 1px solid rgba(0,0,0,.4); }
+    .ft-t { font-family: var(--mono); font-size: 11px; color: #999; margin-left: 6px; }
+    .ft-body { padding: 24px; display: flex; flex-direction: column; gap: 14px; }
+    .ft-row { display: flex; align-items: center; gap: 12px; }
+    .ft-lbl { font-family: var(--mono); font-size: 12px; color: var(--muted); width: 32px; flex-shrink: 0; }
+    .ft-inp {
+      flex: 1; background: var(--surface2); border: 1px solid var(--border2);
+      border-radius: 6px; padding: 8px 12px;
+      font-family: var(--mono); font-size: 12px; color: var(--text);
+    }
+    .ft-btn-row { display: flex; gap: 8px; margin-top: 4px; }
+    .ft-btn {
+      flex: 1; padding: 9px 0; border-radius: 6px; border: 1px solid var(--border2);
+      background: var(--surface2); color: var(--muted);
+      font-family: var(--mono); font-size: 11px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      transition: all .15s;
+    }
+    .ft-btn:hover { border-color: rgba(29,185,84,.4); color: var(--green); }
+    .ft-btn.pri { background: rgba(29,185,84,.1); border-color: rgba(29,185,84,.3); color: var(--green); }
+    .ft-text h3 { font-family: var(--mono); font-size: 22px; margin-bottom: 14px; }
+    .ft-text p { color: var(--muted); font-size: 15px; margin-bottom: 14px; line-height: 1.7; }
+    .ft-list { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+    .ft-list li { display: flex; align-items: flex-start; gap: 9px; font-size: 14px; color: var(--muted); }
+    .ft-list li::before { content: '→'; color: var(--green); font-family: var(--mono); flex-shrink: 0; }
+
+    /* ── HOW IT WORKS ── */
+    #how { padding: 96px 5%; max-width: 1100px; margin: 0 auto; }
+    .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px,1fr)); gap: 0; position: relative; margin-top: 56px; }
+    .steps::before { content:''; position:absolute; top:27px; left:8%; right:8%; height:1px; background:linear-gradient(90deg,transparent,var(--border2) 20%,var(--border2) 80%,transparent); }
+    .step { text-align: center; padding: 0 18px; }
+    .step-n {
+      width: 54px; height: 54px; border-radius: 50%;
+      background: var(--bg); border: 2px solid var(--green);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--mono); font-size: 17px; font-weight: 700; color: var(--green);
+      margin: 0 auto 18px; position: relative; z-index: 1;
+    }
+    .step-t { font-family: var(--mono); font-size: 13px; font-weight: 700; margin-bottom: 7px; }
+    .step-d { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+    /* ── INSTALL ── */
+    #install { padding: 96px 5%; background: var(--surface); border-top: 1px solid var(--border); }
+    .inst-inner { max-width: 900px; margin: 0 auto; }
+    .inst-block { background: var(--bg); border: 1px solid var(--border2); border-radius: var(--r-lg); overflow: hidden; margin-top: 44px; }
+    .inst-tabs { display: flex; border-bottom: 1px solid var(--border); }
+    .inst-tab { padding: 13px 22px; font-family: var(--mono); font-size: 12px; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all .15s; }
+    .inst-tab.on { color: var(--green); border-bottom-color: var(--green); }
+    .inst-body { padding: 26px 30px; }
+    .code-block {
+      background: #070b10; border: 1px solid var(--border); border-radius: 8px;
+      padding: 20px; font-family: var(--mono); font-size: 13px; line-height: 2;
+    }
+    .cl { display: block; }
+    .cc { color: #3a4a5a; }
+    .cg { color: var(--text); }
+    .ca { color: var(--green); }
+    .cs { color: #f6ad55; }
+    .req-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px,1fr)); gap: 14px; margin-top: 28px; }
+    .req-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--r); padding: 18px; }
+    .req-lbl { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: .1em; margin-bottom: 7px; }
+    .req-val { font-size: 13px; color: var(--text); }
+
+    /* ── SCREENSHOT SECTION ── */
+    #screenshots { padding: 96px 5%; max-width: 1100px; margin: 0 auto; }
+    .ss-frame {
+      margin-top: 48px; border-radius: var(--r-lg);
+      overflow: hidden; border: 1px solid var(--border2);
+      box-shadow: 0 24px 60px rgba(0,0,0,.6), 0 0 0 1px rgba(29,185,84,.07);
+    }
+    .ss-frame img { width: 100%; display: block; }
+    .ss-caption {
+      display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; justify-content: center;
+    }
+    .ss-cap {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+      padding: 6px 14px; font-family: var(--mono); font-size: 11px; color: var(--muted);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .ss-cap span { color: var(--green); }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 44px 5%; border-top: 1px solid var(--border);
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 18px;
+    }
+    .fbrand { font-family: var(--mono); font-size: 15px; color: var(--green); }
+    .flinks { display: flex; gap: 24px; list-style: none; }
+    .flinks a { font-size: 13px; color: var(--muted); text-decoration: none; transition: color .2s; }
+    .flinks a:hover { color: var(--text); }
+    .fcopy { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+
+    /* ── FADE IN ── */
+    .fi { opacity: 0; transform: translateY(18px); transition: opacity .55s ease, transform .55s ease; }
+    .fi.vis { opacity: 1; transform: none; }
+
+    /* ── RESPONSIVE ── */
+    @media(max-width:768px) {
+      .nav-links { display: none; }
+      .ft-inner { grid-template-columns: 1fr; }
+      .steps::before { display: none; }
+      footer { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-brand">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+      <rect x="1" y="1" width="8" height="8" rx="1.5" fill="#1db954" opacity=".9"/>
+      <rect x="13" y="1" width="8" height="8" rx="1.5" fill="#1db954" opacity=".55"/>
+      <rect x="1" y="13" width="8" height="8" rx="1.5" fill="#1db954" opacity=".55"/>
+      <rect x="13" y="13" width="8" height="8" rx="1.5" fill="#1db954"/>
+    </svg>
+    Lab<span class="lb"> Master</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#toolbar">Toolbar</a></li>
+    <li><a href="#screenshots">Screenshots</a></li>
+    <li><a href="#install">Install</a></li>
+    <li><a href="https://github.com/HilbertBlack/lab-master" target="_blank" class="nav-gh">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+      GitHub
+    </a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="badge">AGENTLESS · SSH · LINUX · LAN</div>
+  <h1>Control every Linux machine<br>on your LAN from <em>one place</em></h1>
+  <p class="hero-sub">
+    Lab Master is a Python desktop app that orchestrates all Linux machines on your local network over plain SSH — no agents, no daemons, no extra setup on targets.
+  </p>
+  <div class="cta-row">
+    <a href="#install" class="btn-p">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Install
+    </a>
+    <a href="https://github.com/HilbertBlack/lab-master" target="_blank" class="btn-s">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+      View Source
+    </a>
+  </div>
+
+  <!-- Real app window mockup with screenshot -->
+  <div class="screen-frame fi vis">
+    <div class="screen-titlebar">
+      <span class="dot dr"></span><span class="dot dy"></span><span class="dot dg"></span>
+      <span class="win-title">Lab Master</span>
+    </div>
+    <img src="./assets/screen_shot1.png" alt="Lab Master application screenshot showing the main interface with toolbar controls and terminal tiles for connected machines"/>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="statsbar fi">
+  <div class="stat"><span class="stat-n">0</span><div class="stat-l">Agents on targets</div></div>
+  <div class="stat"><span class="stat-n">SSH</span><div class="stat-l">Only protocol needed</div></div>
+  <div class="stat"><span class="stat-n">N+</span><div class="stat-l">Machines at once</div></div>
+  <div class="stat"><span class="stat-n">100%</span><div class="stat-l">Open source · MIT</div></div>
+</div>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="sec-lbl">CAPABILITIES</div>
+  <h2 class="sec-h">Everything you need to<br>run your Linux lab</h2>
+  <p class="sec-sub">Every operation is a one-shot SSH command — no persistent connection, no residual process left behind on target machines.</p>
+
+  <div class="feat-grid fi">
+    <div class="feat-card">
+      <div class="ficon">▶</div>
+      <div class="ftitle">Remote Command Execution</div>
+      <div class="fdesc">Run any shell command on one or many machines simultaneously. Output is streamed live into each machine's terminal tile — stdout and stderr clearly separated.</div>
+      <span class="ftag">paramiko · SSH exec_command</span>
+    </div>
+    <div class="feat-card">
+      <div class="ficon b">🔔</div>
+      <div class="ftitle">Desktop Notifications</div>
+      <div class="fdesc">Push custom pop-up notifications to any remote desktop using <code>notify-send</code>. Great for lab-wide announcements, maintenance alerts, or exam reminders.</div>
+      <span class="ftag b">notify-send over SSH</span>
+    </div>
+    <div class="feat-card">
+      <div class="ficon o">🔒</div>
+      <div class="ftitle">Screen Lock</div>
+      <div class="fdesc">Lock any workstation remotely on demand — ideal for enforcing security policies in labs, classrooms, or shared office environments without physically touching the machine.</div>
+      <span class="ftag o">loginctl / dm-tool</span>
+    </div>
+    <div class="feat-card">
+      <div class="ficon r">🔌</div>
+      <div class="ftitle">Shutdown &amp; Reboot</div>
+      <div class="fdesc">Trigger graceful shutdown or reboot on any target. Optionally notify users before the action executes so they can save work.</div>
+      <span class="ftag r">systemctl poweroff/reboot</span>
+    </div>
+    <div class="feat-card">
+      <div class="ficon y">📂</div>
+      <div class="ftitle">Remote Application Launch</div>
+      <div class="fdesc">Open any installed GUI or CLI application on a target machine. Useful for kiosk control, automation workflows, or launching monitoring tools remotely.</div>
+      <span class="ftag y">DISPLAY env · xvfb</span>
+    </div>
+    <div class="feat-card">
+      <div class="ficon">📁</div>
+      <div class="ftitle">File Transfer — 3 modes</div>
+      <div class="fdesc">Copy files to all remote machines, copy files back from them, or use sudo copy to write into root-owned directories — all from the src/des panel without typing a command.</div>
+      <span class="ftag">Copy to · Copy from · Sudo Copy</span>
+    </div>
+    <div class="feat-card">
+      <div class="ficon b">👤</div>
+      <div class="ftitle">User Management</div>
+      <div class="fdesc">Add or remove user accounts on target machines directly from the toolbar. The optional SUDO and DISP flags let you escalate privileges or control display environment per operation.</div>
+      <span class="ftag b">useradd / userdel</span>
+    </div>
+    <div class="feat-card">
+      <div class="ficon o">🖥️</div>
+      <div class="ftitle">Terminal Tile View</div>
+      <div class="fdesc">Each connected machine gets its own terminal tile in the grid — showing its IP, live command output, and status. Scales automatically as more machines are added.</div>
+      <span class="ftag o">PyQt5 / GTK live output</span>
+    </div>
+  </div>
+</section>
+
+<!-- TOOLBAR EXPLAINER -->
+<section id="toolbar">
+  <div class="tb-inner">
+    <div class="sec-lbl">TOOLBAR REFERENCE</div>
+    <h2 class="sec-h">Every button explained</h2>
+    <p class="sec-sub">The Lab Master toolbar gives you instant access to all operations. Here's what each control does.</p>
+
+    <div class="toolbar-ui fi">
+      <!-- Visual toolbar replica -->
+      <div class="tb-row">
+        <div class="tb-flag"><input type="checkbox" checked/> is SUDO</div>
+        <div class="tb-flag"><input type="checkbox"/> is DISP</div>
+        <div class="tb-sep"></div>
+        <div class="tb-btn" style="border-color:rgba(29,185,84,.4);background:rgba(29,185,84,.08)">▶<span class="tip">Run / Execute command</span></div>
+        <div class="tb-btn" style="border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.08)">⏹<span class="tip">Stop running process</span></div>
+        <div class="tb-btn" style="border-color:rgba(234,179,8,.4);background:rgba(234,179,8,.08)">💬<span class="tip">Send notification (notify-send)</span></div>
+        <div class="tb-btn" style="border-color:rgba(59,130,246,.4);background:rgba(59,130,246,.08)">🔐<span class="tip">Lock user screen</span></div>
+        <div class="tb-btn" style="border-color:rgba(249,115,22,.4);background:rgba(249,115,22,.08)">⏻<span class="tip">Shutdown / power off</span></div>
+        <div class="tb-btn" style="border-color:rgba(29,185,84,.3)">🔄<span class="tip">Reboot / refresh</span></div>
+        <div class="tb-sep"></div>
+        <div class="tb-btn" style="border-color:rgba(59,130,246,.3)">👤+<span class="tip">Add user account</span></div>
+        <div class="tb-btn" style="border-color:rgba(239,68,68,.3)">👤-<span class="tip">Remove user account</span></div>
+      </div>
+
+      <!-- Legend grid -->
+      <div class="tb-legend">
+        <div class="tb-leg-item">
+          <div class="tb-leg-icon" style="color:var(--green)">▶</div>
+          <div class="tb-leg-body">
+            <div class="tb-leg-name">Run Command</div>
+            <div class="tb-leg-desc">Executes the current command on all selected machines over SSH</div>
+          </div>
+        </div>
+        <div class="tb-leg-item">
+          <div class="tb-leg-icon" style="color:var(--red)">⏹</div>
+          <div class="tb-leg-body">
+            <div class="tb-leg-name">Stop</div>
+            <div class="tb-leg-desc">Terminates any running remote command session immediately</div>
+          </div>
+        </div>
+        <div class="tb-leg-item">
+          <div class="tb-leg-icon" style="color:var(--yellow)">💬</div>
+          <div class="tb-leg-body">
+            <div class="tb-leg-name">Send Notification</div>
+            <div class="tb-leg-desc">Pushes a desktop popup to the remote machine using notify-send</div>
+          </div>
+        </div>
+        <div class="tb-leg-item">
+          <div class="tb-leg-icon" style="color:var(--blue)">🔐</div>
+          <div class="tb-leg-body">
+            <div class="tb-leg-name">Lock Screen</div>
+            <div class="tb-leg-desc">Locks the active user session on the target machine</div>
+          </div>
+        </div>
+        <div class="tb-leg-item">
+          <div class="tb-leg-icon" style="color:var(--orange)">⏻</div>
+          <div class="tb-leg-body">
+            <div class="tb-leg-name">Shutdown</div>
+            <div class="tb-leg-desc">Gracefully powers off the target machine via systemctl</div>
+          </div>
+        </div>
+        <div class="tb-leg-item">
+          <div class="tb-leg-icon" style="color:var(--green)">🔄</div>
+          <div class="tb-leg-body">
+            <div class="tb-leg-name">Reboot</div>
+            <div class="tb-leg-desc">Reboots the target machine and updates its tile status</div>
+          </div>
+        </div>
+        <div class="tb-leg-item">
+          <div class="tb-leg-icon" style="color:var(--blue)">👤+</div>
+          <div class="tb-leg-body">
+            <div class="tb-leg-name">Add User</div>
+            <div class="tb-leg-desc">Creates a new user account on the target machine</div>
+          </div>
+        </div>
+        <div class="tb-leg-item">
+          <div class="tb-leg-icon" style="color:var(--red)">👤–</div>
+          <div class="tb-leg-body">
+            <div class="tb-leg-name">Remove User</div>
+            <div class="tb-leg-desc">Deletes a user account from the target machine</div>
+          </div>
+        </div>
+        <div class="tb-leg-item">
+          <div class="tb-leg-icon" style="color:var(--green)">☑</div>
+          <div class="tb-leg-body">
+            <div class="tb-leg-name">is SUDO</div>
+            <div class="tb-leg-desc">Runs the operation with sudo privileges on the target</div>
+          </div>
+        </div>
+        <div class="tb-leg-item">
+          <div class="tb-leg-icon" style="color:var(--blue)">☐</div>
+          <div class="tb-leg-body">
+            <div class="tb-leg-name">is DISP</div>
+            <div class="tb-leg-desc">Sets the DISPLAY variable so GUI apps can be launched remotely</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TERMINAL TILES -->
+<section id="tiles">
+  <div class="sec-lbl">TERMINAL TILES</div>
+  <h2 class="sec-h">All machines. One view.</h2>
+  <p class="sec-sub">Every connected machine gets its own live terminal tile showing its IP and real-time command output — just like in the app.</p>
+
+  <div class="tile-grid fi">
+    <div class="tile">
+      <div class="tile-header">127.0.0.1</div>
+      <div class="tile-term"><span class="tile-prompt">&gt;_ </span><span class="tile-out">uptime: 4 days, 3:21</span><br><span class="tile-prompt">&gt;_ </span><span class="tile-cursor"></span></div>
+    </div>
+    <div class="tile">
+      <div class="tile-header">127.0.0.2</div>
+      <div class="tile-term"><span class="tile-prompt">&gt;_ </span><span class="tile-out">disk: 36% used</span><br><span class="tile-prompt">&gt;_ </span><span class="tile-cursor"></span></div>
+    </div>
+    <div class="tile">
+      <div class="tile-header">10.11.96.103</div>
+      <div class="tile-term"><span class="tile-prompt">&gt;_ </span><span class="tile-out">load: 0.42 0.38</span><br><span class="tile-prompt">&gt;_ </span><span class="tile-cursor"></span></div>
+    </div>
+    <div class="tile">
+      <div class="tile-header">10.11.96.128</div>
+      <div class="tile-term"><span class="tile-prompt">&gt;_ </span><span class="tile-out">users: 2 logged in</span><br><span class="tile-prompt">&gt;_ </span><span class="tile-cursor"></span></div>
+    </div>
+    <div class="tile" style="border-style:dashed; border-color:rgba(29,185,84,.2);">
+      <div class="tile-header" style="color:var(--green)">+ add machine</div>
+      <div class="tile-term" style="background:rgba(29,185,84,.03); display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:11px;">Enter IP &amp; credentials</div>
+    </div>
+  </div>
+</section>
+
+<!-- FILE TRANSFER -->
+<section id="filetransfer">
+  <div class="ft-inner">
+    <div class="ft-ui fi">
+      <div class="ft-titlebar">
+        <span class="dot dr"></span><span class="dot dy"></span><span class="dot dg"></span>
+        <span class="ft-t">File Transfer Panel</span>
+      </div>
+      <div class="ft-body">
+        <div class="ft-row">
+          <div class="ft-lbl">src</div>
+          <div class="ft-inp">/home/manikandan/report.pdf</div>
+        </div>
+        <div class="ft-row">
+          <div class="ft-lbl">des</div>
+          <div class="ft-inp">/home/student/docs/</div>
+        </div>
+        <div class="ft-btn-row">
+          <button class="ft-btn pri">⬆ Copy to Remote</button>
+          <button class="ft-btn">⬇ Copy from Remote</button>
+          <button class="ft-btn" style="border-color:rgba(249,115,22,.3);color:var(--orange);">🔐 Sudo Copy</button>
+        </div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:8px;display:flex;gap:12px;">
+          <span>finishing 0/0</span>
+          <span style="color:var(--border2)">|</span>
+          <span style="color:var(--green)">shfm</span>
+          <span style="color:var(--border2)">|</span>
+          <span>Help</span>
+          <span style="color:var(--border2)">|</span>
+          <span>Exit</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="ft-text fi">
+      <h3>Three ways to copy files</h3>
+      <p>Lab Master's file transfer panel lets you move files between your machine and any remote target using a simple src/des path pair — no terminal command needed.</p>
+      <ul class="ft-list">
+        <li><strong style="color:var(--text);font-weight:600;">Copy to Remote</strong> — push a file or directory from your local machine to all connected target machines at the destination path you specify</li>
+        <li><strong style="color:var(--text);font-weight:600;">Copy from Remote</strong> — pull a file or directory back from a remote machine to your local destination path</li>
+        <li><strong style="color:var(--text);font-weight:600;">Sudo Copy</strong> — same as copy to remote but runs the transfer with sudo privileges on the target side, so you can write to root-owned directories</li>
+        <li>Progress tracked live in the status bar — <code style="color:var(--green);font-family:var(--mono);font-size:12px;">finishing N/N</code> shows completed vs total transfers</li>
+        <li><code style="color:var(--green);font-family:var(--mono);font-size:12px;">shfm</code> button opens the full SSH file manager for browsing remote filesystems</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="sec-lbl">WORKFLOW</div>
+  <h2 class="sec-h">Three steps. Full control.</h2>
+  <p class="sec-sub">Target machines only need sshd running. No agents, no daemons, nothing else to install.</p>
+
+  <div class="steps fi" style="grid-template-columns: repeat(3,1fr);">
+    <div class="step">
+      <div class="step-n">01</div>
+      <div class="step-t">Choose your IP list</div>
+      <div class="step-d">Load or type a list of target machine IPs. Enter your SSH username and password in the left panel, then click <strong style="color:var(--text)">Connect</strong> — Lab Master opens a session to every host simultaneously and spawns a live terminal tile for each one.</div>
+    </div>
+    <div class="step">
+      <div class="step-n">02</div>
+      <div class="step-t">Connect to the machines</div>
+      <div class="step-d">Lab Master establishes SSH connections to all IPs in your list at once. Each connected machine appears as its own tile in the grid, showing hostname, IP, and a ready prompt — online machines glow green.</div>
+    </div>
+    <div class="step">
+      <div class="step-n">03</div>
+      <div class="step-t">Execute &amp; see real-time results</div>
+      <div class="step-d">Pick any toolbar action — run a command, send a notification, lock screens, shutdown, transfer files — and watch the output stream live into every tile simultaneously. No waiting, no polling.</div>
+    </div>
+  </div>
+
+  <!-- inline detail cards under the steps -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:40px;" class="fi">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;display:flex;gap:14px;align-items:flex-start;">
+      <div style="font-size:22px;flex-shrink:0;">📋</div>
+      <div>
+        <div style="font-family:var(--mono);font-size:13px;font-weight:700;margin-bottom:6px;">IP List</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.6;">Paste a plain list of IPs or load a saved list file. Lab Master connects to all of them in one click.</div>
+      </div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;display:flex;gap:14px;align-items:flex-start;">
+      <div style="font-size:22px;flex-shrink:0;">⚡</div>
+      <div>
+        <div style="font-family:var(--mono);font-size:13px;font-weight:700;margin-bottom:6px;">Concurrent execution</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.6;">Commands run on all machines at once using a thread pool — no sequential waiting, even with dozens of hosts.</div>
+      </div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;display:flex;gap:14px;align-items:flex-start;">
+      <div style="font-size:22px;flex-shrink:0;">🟩</div>
+      <div>
+        <div style="font-family:var(--mono);font-size:13px;font-weight:700;margin-bottom:6px;">Live terminal tiles</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.6;">Each machine's tile updates in real time as output arrives — stdout streams in as it happens, not after the command finishes.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SCREENSHOT -->
+<section id="screenshots">
+  <div class="sec-lbl">APP SCREENSHOT</div>
+  <h2 class="sec-h">The real interface</h2>
+  <p class="sec-sub">Lab Master running on Linux — showing 4 connected machines with live terminal tiles.</p>
+
+  <div class="ss-frame fi">
+    <img src="./assets/screen_shot2.png" alt="Lab Master desktop app showing credentials panel, toolbar with run/stop/notify/lock/shutdown/reboot/user controls, file transfer panel, and terminal tiles for 4 machines at 127.0.0.1, 127.0.0.2, 10.11.96.103 and 10.11.96.128"/>
+  </div>
+
+  <div class="ss-caption">
+    <div class="ss-cap">Left panel: <span>credentials + connect</span></div>
+    <div class="ss-cap">Toolbar: <span>run · stop · notify · lock · shutdown · reboot · user mgmt</span></div>
+    <div class="ss-cap">Right panel: <span>src / des file transfer</span></div>
+    <div class="ss-cap">Grid: <span>one tile per connected machine</span></div>
+  </div>
+</section>
+
+<!-- INSTALL -->
+<section id="install">
+  <div class="inst-inner">
+    <div class="sec-lbl">GET STARTED</div>
+    <h2 class="sec-h">Install Lab Master</h2>
+    <p class="sec-sub">Python 3.9+ desktop app. Runs on any Linux desktop with PyQt5 or GTK available.</p>
+
+    <div class="inst-block fi">
+      <div class="inst-tabs">
+        <div class="inst-tab on" onclick="tab(this,'t-git')">From Source</div>
+        <div class="inst-tab" onclick="tab(this,'t-pip')">pip install</div>
+      </div>
+
+      <div class="inst-body" id="t-git">
+        <div class="code-block">
+          <span class="cl"><span class="cc"># Clone from GitHub</span></span>
+          <span class="cl"><span class="cg">git clone </span><span class="ca">https://github.com/HilbertBlack/lab-master.git</span></span>
+          <span class="cl"><span class="cg">cd lab-master</span></span>
+          <span class="cl"> </span>
+          <span class="cl"><span class="cc"># Set up a virtual environment</span></span>
+          <span class="cl"><span class="cg">python3 -m venv .venv &amp;&amp; source .venv/bin/activate</span></span>
+          <span class="cl"> </span>
+          <span class="cl"><span class="cc"># Install dependencies</span></span>
+          <span class="cl"><span class="cg">pip install -r requirements.txt</span></span>
+          <span class="cl"> </span>
+          <span class="cl"><span class="cc"># Launch Lab Master</span></span>
+          <span class="cl"><span class="cg">python </span><span class="ca">main.py</span></span>
+        </div>
+      </div>
+
+      <div class="inst-body" id="t-pip" style="display:none">
+        <div class="code-block">
+          <span class="cl"><span class="cc"># Install from PyPI</span></span>
+          <span class="cl"><span class="cg">pip install </span><span class="ca">lab-master</span></span>
+          <span class="cl"> </span>
+          <span class="cl"><span class="cc"># Run</span></span>
+          <span class="cl"><span class="cg">lab-master</span></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="req-row">
+      <div class="req-card"><div class="req-lbl">RUNTIME</div><div class="req-val">Python 3.9+</div></div>
+      <div class="req-card"><div class="req-lbl">GUI FRAMEWORK</div><div class="req-val">Tkinter</div></div>
+      <div class="req-card"><div class="req-lbl">SSH LIBRARY</div><div class="req-val">paramiko</div></div>
+      <div class="req-card"><div class="req-lbl">TARGETS NEED</div><div class="req-val">sshd · Linux only</div></div>
+      <div class="req-card"><div class="req-lbl">NETWORK</div><div class="req-val">LAN / same subnet</div></div>
+      <!-- <div class="req-card"><div class="req-lbl">LICENSE</div><div class="req-val">MIT · Open source</div></div> -->
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="fbrand">Lab Master</div>
+  <ul class="flinks">
+    <li><a href="https://github.com/HilbertBlack/lab-master" target="_blank">GitHub</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#toolbar">Toolbar</a></li>
+    <li><a href="#install">Install</a></li>
+  </ul>
+  <!-- <div class="fcopy">MIT License · Built with Python · Agentless Linux LAN Orchestration</div> -->
+</footer>
+
+<script>
+  function tab(el, id) {
+    document.querySelectorAll('.inst-tab').forEach(t => t.classList.remove('on'));
+    document.querySelectorAll('.inst-body').forEach(b => b.style.display = 'none');
+    el.classList.add('on');
+    document.getElementById(id).style.display = 'block';
+  }
+
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('vis'); obs.unobserve(e.target); } });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.fi').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>
