@@ -398,7 +398,7 @@ def connect_all(list_of_ips, common_username, common_password):
         temp_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         try:
             print("Trying to connect:", ip)
-            temp_client.connect(hostname = ip, username = common_username, password = common_password, port = 22, timeout=5)
+            temp_client.connect(hostname = ip, username = common_username, password = common_password, port = 2222, timeout=5)
             list_of_clients.append(temp_client)
             print("connected: ", ip)
 
@@ -582,7 +582,7 @@ def connect_default(cmd):
 
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    client.connect(hostname = "10.198.122.106", username = "machine", password = "machine@123", port = 22)
+    client.connect(hostname = "10.198.122.106", username = "machine", password = "machine@123", port = 2222)
 
     print("client connected")
 
@@ -839,7 +839,7 @@ def shut_down_all():
         """Return True if SSH is still reachable."""
         test_socket = None
         try:
-            test_socket = socket.create_connection((ip_address, 22), timeout=timeout)
+            test_socket = socket.create_connection((ip_address, 2222), timeout=timeout)
             return True
         except (socket.timeout, ConnectionRefusedError, OSError):
             return False
@@ -847,13 +847,13 @@ def shut_down_all():
             if test_socket is not None:
                 test_socket.close()
 
-    def shutdown_was_started(ip_address, wait_seconds=20):
+    def shutdown_was_started(ip_address, wait_seconds=4):
         """Confirm that the remote system stopped accepting SSH connections."""
         deadline = time.monotonic() + wait_seconds
         while time.monotonic() < deadline:
             if not is_ssh_port_reachable(ip_address):
                 return True
-            time.sleep(1)
+            time.sleep(0.5)
         return False
 
     def try_shutdown_command(client, ip, cmd):
@@ -867,7 +867,7 @@ def shut_down_all():
             )
             
             channel = stdout.channel
-            command_deadline = time.monotonic() + 8
+            command_deadline = time.monotonic() + 3
 
             while not channel.exit_status_ready() and time.monotonic() < command_deadline:
                 time.sleep(0.2)
