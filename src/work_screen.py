@@ -2,6 +2,8 @@ import traceback as traceback
 import tkinter as tk
 import paramiko as paramiko
 import os as os
+import socket
+import time
 import datetime as datetime
 import configparser as configparser
 import remote_connection as remote_connection
@@ -396,7 +398,7 @@ def connect_all(list_of_ips, common_username, common_password):
         temp_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         try:
             print("Trying to connect:", ip)
-            temp_client.connect(hostname = ip, username = common_username, password = common_password, port = 22, timeout=5)
+            temp_client.connect(hostname = ip, username = common_username, password = common_password, port = 2222, timeout=5)
             list_of_clients.append(temp_client)
             print("connected: ", ip)
 
@@ -580,7 +582,7 @@ def connect_default(cmd):
 
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    client.connect(hostname = "10.198.122.106", username = "machine", password = "machine@123", port = 22)
+    client.connect(hostname = "10.198.122.106", username = "machine", password = "machine@123", port = 2222)
 
     print("client connected")
 
@@ -806,12 +808,181 @@ def lock_sessions_all():
     run_cmd_all(list_of_clients, lock_cmd, username_entry.get(), password_entry.get(), isSUDO=True)
 
 def shut_down_all():
+    """
+    Shutdown each connected machine safely, with a fail-safe fallback.
+
+    Shutdown behavior:
+    - RED_ICON: shutdown was confirmed or the SSH connection disappeared.
+    - RED_CROSS_ICON: shutdown failed and fail-safe failed; machine is still reachable.
+    - Exit code -1 triggers a network ping to verify if the machine actually died.
+    """
+
     global list_of_clients
+    global connected_ips_list
+    global missing_ips_list
 
-    shutdown_cmd = config.get("system_cmd", "SHUT_DOWN_NOW")
-    print("the LOCK cmd = ", shutdown_cmd)
+    shutdown_cmd = config.get("system_cmd", "SHUT_DOWN_NOW").strip()
+    reshutdown_cmd = "sudo -S shutdown -h now"
 
-    run_cmd_all(list_of_clients, shutdown_cmd, username_entry.get(), password_entry.get(), isSUDO=True)
+    total_count = len(list_of_clients)
+    finished_count = 0
+    success_count = 0
+    failure_count = 0
+
+    if total_count == 0:
+        processing_label.config(text="[ Done ] Success:0 Failure:0")
+        main_frame.update()
+        print("No active clients available for shutdown")
+        return -1
+
+    def is_ssh_port_reachable(ip_address, timeout=1):
+        """Return True if SSH is still reachable."""
+        test_socket = None
+        try:
+            test_socket = socket.create_connection((ip_address, 2222), timeout=timeout)
+            return True
+        except (socket.timeout, ConnectionRefusedError, OSError):
+            return False
+        finally:
+            if test_socket is not None:
+                test_socket.close()
+
+    def shutdown_was_started(ip_address, wait_seconds=4):
+        """Confirm that the remote system stopped accepting SSH connections."""
+        deadline = time.monotonic() + wait_seconds
+        while time.monotonic() < deadline:
+            if not is_ssh_port_reachable(ip_address):
+                return True
+            time.sleep(0.5)
+        return False
+
+    def try_shutdown_command(client, ip, cmd):
+        """Executes the shutdown command and returns True if successful."""
+        try:
+            stdin, stdout, stderr = remote_connection.run_sudo_cmd(
+                client,
+                cmd,
+                username_entry.get(),
+                password_entry.get()
+            )
+            
+            channel = stdout.channel
+            command_deadline = time.monotonic() + 3
+
+            while not channel.exit_status_ready() and time.monotonic() < command_deadline:
+                time.sleep(0.2)
+
+            if channel.exit_status_ready():
+                exit_code = channel.recv_exit_status()
+                print(f"{ip} exit code for command: {exit_code}")
+
+                if exit_code == 0:
+                    return True
+                elif exit_code == -1:
+                    print(f"{ip} returned -1; checking if shutdown actually started...")
+                    return shutdown_was_started(ip)
+                else:
+                    print(f"{ip} returned a real shutdown error: {exit_code}")
+                    return False
+            else:
+                print(f"{ip} did not return an exit code in time; verifying state...")
+                return shutdown_was_started(ip)
+
+        except Exception as e:
+            print(f"Command execution error on {ip}: {e}")
+            # If the socket dropped due to power cut during execution, check port
+            return shutdown_was_started(ip)
+
+    reset_color_all_term_btns(YELLOW_ICON)
+    processing_label.config(text=f"finishing 0/{total_count}")
+    main_frame.update()
+
+    clients_still_available = []
+
+    for client in list(list_of_clients):
+        ip_address = "unknown"
+        shutdown_success = False
+
+        try:
+            transport = client.get_transport()
+
+            if transport is None:
+                raise RuntimeError("SSH transport is unavailable")
+
+            ip_address = transport.getpeername()[0]
+
+            print(f"Starting shutdown for {ip_address}")
+            change_term_btn_icon(ip_address, YELLOW_ICON)
+            main_frame.update()
+
+            # --- 1. Primary Shutdown Attempt ---
+            shutdown_success = try_shutdown_command(client, ip_address, shutdown_cmd)
+
+            # --- 2. Fail-Safe Reshutdown Attempt ---
+            if not shutdown_success:
+                print(f"[FAIL-SAFE] Shutdown on {ip_address} failed. Attempting RESHUTDOWN...")
+                shutdown_success = try_shutdown_command(client, ip_address, reshutdown_cmd)
+
+            # --- 3. Process Final Result ---
+            if shutdown_success:
+                change_term_btn_icon(ip_address, RED_ICON)
+                success_count += 1
+                connected_ips_list.discard(ip_address)
+                missing_ips_list.discard(ip_address)
+                print(f"[SUCCESS] Shutdown confirmed for {ip_address}")
+                try:
+                    client.close()
+                except Exception:
+                    pass
+            else:
+                change_term_btn_icon(ip_address, RED_CROSS_ICON)
+                failure_count += 1
+                clients_still_available.append(client)
+                print(f"[FAILED] Shutdown could not be confirmed for {ip_address}")
+
+        except Exception as error:
+            print(f"Critical exception for {ip_address}: {error}")
+            traceback.print_exc()
+            
+            # Final fallback check if exception caused SSH drop
+            if ip_address != "unknown" and shutdown_was_started(ip_address):
+                change_term_btn_icon(ip_address, RED_ICON)
+                success_count += 1
+                connected_ips_list.discard(ip_address)
+                missing_ips_list.discard(ip_address)
+                try:
+                    client.close()
+                except Exception:
+                    pass
+            else:
+                change_term_btn_icon(ip_address, RED_CROSS_ICON)
+                failure_count += 1
+                clients_still_available.append(client)
+
+        finally:
+            finished_count += 1
+            processing_label.config(
+                text=(
+                    f"finishing {finished_count}/{total_count} "
+                    f"Success:{success_count} Failure:{failure_count}"
+                )
+            )
+            main_frame.update()
+
+    # Keep only clients that are still usable after the operation.
+    list_of_clients[:] = clients_still_available
+
+    processing_label.config(
+        text=f"[ Done ] Success:{success_count} Failure:{failure_count}"
+    )
+    main_frame.update()
+
+    print(
+        f"Shutdown completed. "
+        f"Success:{success_count}, Failure:{failure_count}"
+    )
+
+    return 0 if failure_count == 0 else -1
 
 def change_passwd_all():
         # This function change the passwd for the list of users
