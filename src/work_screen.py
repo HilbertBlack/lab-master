@@ -822,7 +822,7 @@ def shut_down_all():
     global missing_ips_list
 
     shutdown_cmd = config.get("system_cmd", "SHUT_DOWN_NOW").strip()
-    reshutdown_cmd = "sudo -S poweroff -f || sudo -S shutdown -h now"
+    reshutdown_cmd = "sudo -S shutdown -h now"
 
     total_count = len(list_of_clients)
     finished_count = 0
